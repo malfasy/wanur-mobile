@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Penghitung tombol (uji FR6)</title>
+<style>
+  :root { --bg:#F3F1ED; --ink:#17191E; --muted:#8F949D; --accent:#E4572E; --card:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Roboto, system-ui, sans-serif; background:var(--bg); color:var(--ink); padding:20px; }
+  .label { font-size:11px; letter-spacing:1.3px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .total { font-size:88px; font-weight:700; letter-spacing:-3px; line-height:1; margin:8px 0 4px; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0; }
+  .key { background:var(--card); border-radius:18px; padding:14px 8px; text-align:center; transition:background .1s; }
+  .key.hit { background:var(--accent); color:#fff; }
+  .key b { display:block; font-size:24px; }
+  .key span { font-size:13px; color:inherit; opacity:.75; }
+  .log { background:var(--card); border-radius:18px; padding:14px; font-family:monospace; font-size:12px; min-height:120px; white-space:pre; overflow:hidden; }
+  button { border:0; border-radius:99px; background:var(--ink); color:#fff; padding:12px 18px; font-size:14px; margin-top:14px; }
+  .other { font-size:13px; color:var(--muted); }
+</style>
+</head>
+<body>
+  <div class="label">Uji FR6 · event keydown yang sampai ke WebView</div>
+  <div class="total" id="total">0</div>
+  <div class="other">keydown diterima (tanpa auto-repeat) · <span id="repeat">0</span> auto-repeat diabaikan</div>
+  <div class="grid" id="grid"></div>
+  <div class="label" style="margin-bottom:8px">10 event terakhir</div>
+  <div class="log" id="log"></div>
+  <button id="reset">Reset hitungan</button>
+<script>
+  // Hitung event keydown yang benar-benar diterima halaman. Bandingkan dengan
+  // jumlah tekanan yang dicatat aplikasi (log [KEY] / kolom total_presses):
+  // keduanya harus sama, artinya logger Android tidak menelan event.
+  var keys = ['f','g','h','j'];
+  var counts = {}, total = 0, repeats = 0, log = [];
+  var grid = document.getElementById('grid');
+  function render() {
+    grid.innerHTML = '';
+    var shown = keys.slice();
+    Object.keys(counts).forEach(function (k) { if (shown.indexOf(k) < 0) shown.push(k); });
+    shown.forEach(function (k) {
+      var d = document.createElement('div');
+      d.className = 'key'; d.id = 'k_' + k;
+      d.innerHTML = '<b>' + k.toUpperCase() + '</b><span>' + (counts[k] || 0) + '</span>';
+      grid.appendChild(d);
+    });
+    document.getElementById('total').textContent = total;
+    document.getElementById('repeat').textContent = repeats;
+    document.getElementById('log').textContent = log.join('\n');
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.repeat) { repeats++; render(); return; }
+    var k = (e.key || '').toLowerCase();
+    counts[k] = (counts[k] || 0) + 1;
+    total++;
+    var t = new Date();
+    log.unshift(t.toTimeString().slice(0, 8) + '.' + String(t.getMilliseconds()).padStart(3, '0') +
+      '  keydown  key=' + e.key + '  code=' + e.code);
+    if (log.length > 10) log.pop();
+    render();
+    var el = document.getElementById('k_' + k);
+    if (el) { el.classList.add('hit'); setTimeout(function () { el.classList.remove('hit'); }, 150); }
+    if (window.console) console.log('[FR6] keydown ' + k + ' total=' + total);
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    counts = {}; total = 0; repeats = 0; log = []; render();
+  });
+  render();
+</script>
+</body>
+</html>

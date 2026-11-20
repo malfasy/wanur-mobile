@@ -16,6 +16,28 @@
 
 ---
 
+## Logbook latihan dan dashboard progres (branch `feature/logbook-dashboard`)
+
+Fitur baru: **Riwayat Latihan** (sesi terekam otomatis saat layar latihan terbuka), **Tes Genggam** terpandu 3 percobaan, dan **Progres Pemulihan** (kepatuhan, tren genggam, menit aktif per minggu, sebaran jari, target mingguan, ringkasan PDF untuk terapis). Semua nilai gaya adalah nilai relatif (kg*), belum dikalibrasi dengan dinamometer.
+
+Menjalankan dan menguji tanpa glove:
+
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run            # build debug: ikon Pengaturan Pengembang muncul di Beranda
+adb shell input keyevent KEYCODE_F   # tekanan keypad tiruan (juga G, H, J)
+```
+
+- Mode simulasi dan impor 10 profil pasien: Pengaturan Pengembang. Profil dibuat ulang dengan `python3 tools/generate_profiles.py`.
+- T1 test case: `docs/T1_test_cases.md`
+- T2 kesesuaian indikator: ekspor dari Pengaturan Pengembang, lalu `python3 tools/verify_indicators.py indicators_all_profiles.json`
+- T3 waktu muat: `docs/T3_procedure.md` dan `tools/summarize_t3.py`
+- Catatan implementasi dan perbedaan dari desain: `docs/IMPLEMENTATION_NOTES.md`
+
+---
+
 ## 🎮 Getting Started
 
 ### 1️⃣ First Time Setup
