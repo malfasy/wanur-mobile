@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/calibration_base_layout.dart';
+import '../theme/app_theme.dart';
 import 'touch_edit_screen.dart';        // Import Halaman Edit
 import 'touch_calibration_screen.dart'; // Import Halaman Kalibrasi
 
@@ -34,9 +35,9 @@ class TouchMenuScreen extends StatelessWidget {
           // --- TOMBOL 1: KE MODE EDIT ---
           _buildBigButton(
             context, 
-            "EDIT KEY MAPPING", 
+            "UBAH KEYMAP", 
             Icons.edit, 
-            const Color(0xFF0F4C5C), // Warna Teal Gelap
+            AppColors.dark2,
             () {
               Navigator.push(
                 context, 
@@ -50,9 +51,9 @@ class TouchMenuScreen extends StatelessWidget {
           // --- TOMBOL 2: KE MODE KALIBRASI ---
           _buildBigButton(
             context, 
-            "START CALIBRATION", 
+            "MULAI KALIBRASI", 
             Icons.speed, 
-            const Color(0xFF4A5240), // Warna Olive/Hijau Gelap
+            AppColors.accent,
             () {
               Navigator.push(
                 context, 
@@ -77,7 +78,7 @@ class TouchMenuScreen extends StatelessWidget {
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: const StadiumBorder(),
           elevation: 5,
           shadowColor: color.withOpacity(0.5),
         ),

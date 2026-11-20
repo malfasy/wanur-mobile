@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'quote_screen.dart'; // <--- Sambungkan ke Gerbong 2 (Quote)
+
+import '../theme/app_theme.dart';
+import 'quote_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -10,75 +12,56 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    // Tahan 2 detik di Logo, lalu pindah ke Quote
-    Timer(const Duration(seconds: 2), () {
+    _timer = Timer(const Duration(milliseconds: 1400), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const QuoteScreen()),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const QuoteScreen(),
+            transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+          ),
         );
       }
     });
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Positioned(
-          //   top: 16,
-          //   left: 16,
-          //   child: IconButton(
-          //     icon: const Icon(Icons.arrow_back, color: Colors.black54),
-          //     onPressed: () {
-          //       if (Navigator.of(context).canPop()) {
-          //         Navigator.of(context).pop();
-          //       }
-          //     },
-          //     tooltip: 'Back',
-          //   ),
-          // ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                // [ASET] Ganti dengan gambar logomu 'Splash.png'
-                // Pastikan file ada di folder assets/
-                // Jika aset tidak ada, gunakan ikon default
-                SizedBox(
-                  height: 120,
-                  width: 120,
-                  child: Image(
-                    image: AssetImage('assets/logo_aja.png'),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "WANUR",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1F2A44),
-                    letterSpacing: -1.0,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  "REHABMEDICS",
-                  style: TextStyle(
-                    letterSpacing: 2.0,
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+      backgroundColor: AppColors.bg,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 112,
+              height: 112,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.dark,
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: Image.asset('assets/logo_aja.png',
+                  errorBuilder: (c, o, s) => const Icon(Icons.back_hand, color: Colors.white, size: 48)),
             ),
-          ),
-        ],
+            const SizedBox(height: 22),
+            const Text('wanur',
+                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1.5)),
+            const SizedBox(height: 4),
+            const Text('REHABMEDICS',
+                style: TextStyle(letterSpacing: 3, color: AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+          ],
+        ),
       ),
     );
   }

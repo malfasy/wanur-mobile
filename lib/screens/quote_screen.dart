@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'loading_screen.dart';
+
+import '../theme/app_theme.dart';
+import 'home_screen.dart';
 
 class QuoteScreen extends StatefulWidget {
   const QuoteScreen({super.key});
@@ -10,82 +12,84 @@ class QuoteScreen extends StatefulWidget {
 }
 
 class _QuoteScreenState extends State<QuoteScreen> {
+  Timer? _timer;
+  bool _left = false;
 
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 4), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoadingScreen()),
-      );
-    });
+    _timer = Timer(const Duration(seconds: 3), _next);
+  }
+
+  void _next() {
+    if (_left || !mounted) return;
+    _left = true;
+    _timer?.cancel();
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const HomeScreen(),
+        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD6E4FF), 
-      body: Stack(
-        children: [
-          // --- LAYER 1: BACKGROUND SHAPE ---
-          Positioned(
-            top: 0, 
-            right: 0,
-            child: Opacity(
-              opacity: 0.6,
-              child: Image.asset(
-                'assets/bg_shape_1.png',
-                width: 250, 
-                fit: BoxFit.contain,
-                errorBuilder: (c,o,s)=>const SizedBox(),
-              ),
-            ),
-          ),
-
-          // --- LAYER 2: KONTEN TENGAH (YANG DIPERBAIKI) ---
-          // Mas tambahkan widget 'Center' di sini sebagai pembungkus utama
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Column(
-                // mainAxisSize: MainAxisSize.min artinya:
-                // "Hei Column, jangan maruk ambil semua tinggi layar,
-                // ambil secukupnya aja sesuai tinggi teks."
-                // Karena sudah dibungkus Center, dia bakal otomatis ke tengah.
-                mainAxisSize: MainAxisSize.min, 
-                
-                children: const [
-                  Icon(Icons.format_quote_rounded, size: 60, color: Color(0xFF2F80ED)),
-                  
-                  SizedBox(height: 20),
-                  
-                  Text(
-                    "\"Health is the complete harmony of the body and soul.\"",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2A44),
-                      height: 1.3,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _next,
+      child: Scaffold(
+        backgroundColor: AppColors.dark,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Spacer(),
+                const Text('“', style: TextStyle(fontSize: 80, height: 0.8, color: AppColors.accent)),
+                const Text(
+                  'Kesehatan adalah harmoni sempurna antara tubuh dan jiwa.',
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.2,
+                      letterSpacing: -0.8),
+                ),
+                const SizedBox(height: 20),
+                const Text('ARISTOTELES',
+                    style: TextStyle(color: Colors.white54, letterSpacing: 2, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Row(children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(seconds: 3),
+                        builder: (_, v, __) => LinearProgressIndicator(
+                          value: v,
+                          minHeight: 4,
+                          backgroundColor: Colors.white12,
+                          valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+                        ),
+                      ),
                     ),
                   ),
-                  
-                  SizedBox(height: 30),
-                  
-                  Text(
-                    "— ARISTOTLE",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2F80ED),
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
-              ),
+                  const SizedBox(width: 16),
+                  const Text('Ketuk untuk lanjut', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                ]),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

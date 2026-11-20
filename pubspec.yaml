@@ -34,6 +34,16 @@ dependencies:
   # 7. WebView (In-app Browser)
   webview_flutter: ^4.4.2
 
+  # 8. Grafik dashboard progres
+  fl_chart: ^0.70.2
+
+  # 9. PDF ringkasan terapis + menu share Android
+  pdf: ^3.11.3
+  printing: ^5.14.2
+
+  # 10. Folder ekspor indikator (adb pull)
+  path_provider: ^2.1.5
+
   # 6. Ikon Bawaan
   cupertino_icons: ^1.0.6
 
@@ -51,3 +61,5 @@ flutter:
   # Artinya: "Tolong ambil SEMUA file gambar di dalam folder assets"
   assets:
     - assets/
+    - assets/sim_profiles/
+    - assets/test/
