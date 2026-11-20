@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/calibration_base_layout.dart';
 import '../providers/glove_provider.dart';
+import '../theme/app_theme.dart';
 
 class TouchEditScreen extends StatelessWidget {
   const TouchEditScreen({super.key});
@@ -27,7 +28,7 @@ class TouchEditScreen extends StatelessWidget {
             top: 60, left: 0, right: 0,
             child: Center(
               child: Text(
-                "EDIT TOMBOL", 
+                "UBAH KEYMAP", 
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)
               ),
             ),
@@ -55,17 +56,17 @@ class TouchEditScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _FingerEditBtn(fingerKey: 'pinky', label: 'LITTLE FINGER')),
+                    Expanded(child: _FingerEditBtn(fingerKey: 'pinky', label: 'KELINGKING')),
                     const SizedBox(width: 16),
-                    Expanded(child: _FingerEditBtn(fingerKey: 'ring', label: 'RING FINGER')),
+                    Expanded(child: _FingerEditBtn(fingerKey: 'ring', label: 'MANIS')),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _FingerEditBtn(fingerKey: 'middle', label: 'MIDDLE FINGER')),
+                    Expanded(child: _FingerEditBtn(fingerKey: 'middle', label: 'TENGAH')),
                     const SizedBox(width: 16),
-                    Expanded(child: _FingerEditBtn(fingerKey: 'index', label: 'INDEX FINGER')),
+                    Expanded(child: _FingerEditBtn(fingerKey: 'index', label: 'TELUNJUK')),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -97,11 +98,11 @@ class TouchEditScreen extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             // Kalau jari ditekan: HIJAU TERANG. Kalau diam: HIJAU GELAP.
-            color: isActive ? Colors.greenAccent : const Color(0xFF4A5240),
+            color: isActive ? AppColors.accent : AppColors.dark2,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.white30),
             boxShadow: isActive 
-                ? [BoxShadow(color: Colors.greenAccent.withOpacity(0.8), blurRadius: 20)] 
+                ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.7), blurRadius: 20)] 
                 : [],
           ),
           child: Text(
@@ -149,10 +150,10 @@ class _FingerEditBtn extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           // Tombol ikut menyala kalau sensor ditekan
-          backgroundColor: isPressedRealTime ? const Color(0xFF00BFA5) : const Color(0xFF121A2D),
+          backgroundColor: isPressedRealTime ? AppColors.accent : AppColors.dark,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: Colors.cyanAccent, width: 1)
+            side: const BorderSide(color: Colors.white24, width: 1)
           ),
         ),
         onPressed: () => _showEditDialog(context, glove, fingerKey),
@@ -176,8 +177,8 @@ class _FingerEditBtn extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0B101F),
-        title: Text("Edit Tombol $label", style: const TextStyle(color: Colors.cyanAccent)),
+        backgroundColor: AppColors.dark,
+        title: Text("Edit Tombol $label", style: const TextStyle(color: AppColors.accent)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

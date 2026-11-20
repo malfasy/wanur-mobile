@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/glove_data_source.dart';
+
 class GloveData {
   // Nilai HX711 (Loadcell)
   final int hxValue;
@@ -27,6 +29,14 @@ class GloveProvider with ChangeNotifier {
   BluetoothDevice? _connectedDevice;
   BluetoothCharacteristic? _dataCharacteristic; // Untuk kirim DAN terima data
   StreamSubscription<List<int>>? _rxSubscription;
+  StreamSubscription<BluetoothConnectionState>? _connStateSub;
+  StreamSubscription<KeyPress>? _keySub;
+
+  // Stream untuk lapisan pengambilan data (RealGloveSource).
+  final StreamController<ForceSample> _forceCtrl = StreamController<ForceSample>.broadcast();
+  final StreamController<bool> _connCtrl = StreamController<bool>.broadcast();
+  Stream<ForceSample> get forceSampleStream => _forceCtrl.stream;
+  Stream<bool> get connectionStream => _connCtrl.stream;
   List<ScanResult> _scanResults = [];
 
   // --- STATE UTAMA ---
@@ -238,6 +248,34 @@ class GloveProvider with ChangeNotifier {
   }
 
   // ==============================================================
+  // BAGIAN A2: KEY EVENT (keypad HID) -> lastKey
+  // ==============================================================
+
+  /// Hubungkan stream key event dari sumber data aktif (glove nyata atau simulasi).
+  /// Setiap key-down meng-update [GloveData.lastKey], sehingga layar kalibrasi
+  /// jari bisa mendeteksi tekanan.
+  void bindKeyStream(Stream<KeyPress> keys) {
+    _keySub?.cancel();
+    _keySub = keys.listen((k) {
+      debugPrint('[KEY] char=${k.char} keyCode=${k.keyCode} action=${k.action} t=${k.tMs}');
+      if (!k.isDown || k.char.isEmpty) return;
+      _data = GloveData(hxValue: _data.hxValue, lastKey: k.char);
+      notifyListeners();
+    });
+  }
+
+  /// Kosongkan lastKey (dipanggil saat kalibrasi dimulai supaya tekanan lama
+  /// tidak langsung dianggap sebagai tekanan jari pertama).
+  void resetLastKey() {
+    _data = GloveData(hxValue: _data.hxValue, lastKey: 'N/A');
+    notifyListeners();
+  }
+
+  /// Keymap sebagai 4 karakter: telunjuk, tengah, manis, kelingking.
+  String get keymapString =>
+      '${_keyMap['index1']}${_keyMap['index2']}${_keyMap['index3']}${_keyMap['index4']}';
+
+  // ==============================================================
   // BAGIAN B: LOGIKA MAPPING & PENGIRIMAN DATA
   // ==============================================================
 
@@ -333,7 +371,18 @@ class GloveProvider with ChangeNotifier {
       await device.connect(timeout: const Duration(seconds: 10));
       _connectedDevice = device;
       _isConnected = true;
+      _connCtrl.add(true);
       notifyListeners();
+
+      // Pantau status koneksi untuk catatan kualitas data (BLE terputus).
+      await _connStateSub?.cancel();
+      _connStateSub = device.connectionState.listen((state) {
+        final connected = state == BluetoothConnectionState.connected;
+        if (connected == _isConnected) return;
+        _isConnected = connected;
+        _connCtrl.add(connected);
+        notifyListeners();
+      });
 
       print("✅ Connected to device!");
 
@@ -426,6 +475,8 @@ class GloveProvider with ChangeNotifier {
 
       // Update data
       _data = GloveData(hxValue: loadcellValue, lastKey: _data.lastKey);
+      _forceCtrl.add(ForceSample(
+          raw: loadcellValue, tMs: DateTime.now().millisecondsSinceEpoch));
       notifyListeners();
     } catch (e) {
       print("❌ Error parsing data: $e");
@@ -440,6 +491,9 @@ class GloveProvider with ChangeNotifier {
       // Cancel subscription
       await _rxSubscription?.cancel();
       _rxSubscription = null;
+      await _connStateSub?.cancel();
+      _connStateSub = null;
+      if (_isConnected && !_connCtrl.isClosed) _connCtrl.add(false);
 
       // Disconnect device
       if (_connectedDevice != null) {
@@ -461,6 +515,9 @@ class GloveProvider with ChangeNotifier {
   @override
   void dispose() {
     disconnect();
+    _keySub?.cancel();
+    _forceCtrl.close();
+    _connCtrl.close();
     super.dispose();
   }
 

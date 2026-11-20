@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/glove_provider.dart';
-import 'measurement_screen.dart'; // Page Genggaman
-import 'touch_menu_screen.dart'; // Page Menu Kalibrasi
-import 'game_webview_screen.dart'; // Page Game
 
+import '../data/data_source_controller.dart';
+import '../logic/indicators.dart';
+import '../models/training_models.dart';
+import '../providers/glove_provider.dart';
+import '../services/training_repository.dart';
+import '../theme/app_theme.dart';
+import '../widgets/ui_kit.dart';
+import 'dev_settings_screen.dart';
+import 'device_screen.dart';
+import 'nav.dart';
+import 'grip_test_screen.dart';
+import 'progress_screen.dart';
+import 'touch_menu_screen.dart';
+import 'training_log_screen.dart';
+
+/// Kerangka utama aplikasi: 4 tab dengan navigasi bawah berbentuk pil.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -13,556 +25,112 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _isRetrying = false;
+  int _tab = 0;
+  Stopwatch? _progressStopwatch;
+  bool _autoConnectTried = false;
 
   @override
   void initState() {
     super.initState();
-    // Auto-connect saat app dibuka
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final glove = context.read<GloveProvider>();
-      _tryAutoConnect(glove);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoConnect());
   }
 
-  Future<void> _tryAutoConnect(GloveProvider glove) async {
-    // Jangan auto-connect kalau sudah connected
-    if (glove.isConnected) return;
-
-    setState(() {
-      _isRetrying = true;
-    });
-
+  Future<void> _tryAutoConnect() async {
+    if (_autoConnectTried) return;
+    _autoConnectTried = true;
+    final glove = context.read<GloveProvider>();
+    final sources = context.read<DataSourceController>();
+    if (glove.isConnected || sources.useSim) return;
     try {
-      final success = await glove.autoConnectBondedDevice();
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Auto-connected to paired device!"),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else if (mounted && !success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("⚠️ No paired WanurGlove device found"),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      await glove.autoConnectBondedDevice();
     } catch (e) {
-      print("Auto-connect failed: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("❌ Auto-connect failed: ${e.toString()}"),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isRetrying = false;
-        });
-      }
+      debugPrint('Auto-connect gagal: $e');
     }
   }
 
-  // Dialog untuk scan BLE devices
-  void _showScanDialog(BuildContext context) {
-    final glove = context.read<GloveProvider>();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF121A2D),
-        title: const Text(
-          "Scan BLE Devices",
-          style: TextStyle(color: Colors.cyanAccent),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: Consumer<GloveProvider>(
-            builder: (context, glove, child) {
-              if (glove.isScanning) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: Colors.cyanAccent),
-                      SizedBox(height: 16),
-                      Text("Scanning...",
-                          style: TextStyle(color: Colors.white70)),
-                    ],
-                  ),
-                );
-              }
-
-              if (glove.scanResults.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "Press Scan button to search for devices",
-                    style: TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                itemCount: glove.scanResults.length,
-                itemBuilder: (context, index) {
-                  final result = glove.scanResults[index];
-
-                  // Cek apakah device ini punya service WanurGlove
-                  final hasWanurService = result.advertisementData.serviceUuids
-                      .any((uuid) =>
-                          uuid.toString().toLowerCase() ==
-                          "4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-
-                  final deviceName = result.device.platformName.isEmpty
-                      ? (hasWanurService
-                          ? "🎯 MediGrip Device"
-                          : "Unknown Device")
-                      : result.device.platformName;
-
-                  // MAC Address (untuk identifikasi)
-                  final macAddress = result.device.remoteId.toString();
-
-                  return ListTile(
-                    leading: Icon(
-                        hasWanurService ? Icons.sensors : Icons.bluetooth,
-                        color: hasWanurService
-                            ? Colors.greenAccent
-                            : Colors.cyanAccent),
-                    title: Text(
-                      deviceName,
-                      style: TextStyle(
-                        color:
-                            hasWanurService ? Colors.greenAccent : Colors.white,
-                        fontWeight: hasWanurService
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "MAC: $macAddress",
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 11),
-                        ),
-                        if (hasWanurService)
-                          const Text(
-                            "✅ WanurGlove Service Detected",
-                            style: TextStyle(
-                                color: Colors.greenAccent, fontSize: 10),
-                          ),
-                      ],
-                    ),
-                    trailing: Text(
-                      "${result.rssi} dBm",
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    onTap: () async {
-                      // Tutup dialog scan
-                      Navigator.pop(context);
-
-                      // Check apakah device sudah bonded
-                      final isBonded =
-                          await glove.isDeviceBonded(result.device);
-
-                      bool shouldProceed = true;
-
-                      // Kalau belum bonded, kasih instruksi pairing
-                      if (!isBonded) {
-                        shouldProceed = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: const Color(0xFF121A2D),
-                                title: const Text(
-                                  "⚠️ Pairing Required (First Time)",
-                                  style: TextStyle(color: Colors.orangeAccent),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "This device is not paired yet. Pairing is required for BleKeyboard connection.",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      "Steps:",
-                                      style: TextStyle(
-                                          color: Colors.cyanAccent,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      "1. Open Settings → Bluetooth\n"
-                                      "2. Find 'MediGrip-Controller'\n"
-                                      "3. Tap to Pair\n"
-                                      "4. Return to this app\n"
-                                      "5. Tap 'Continue' below",
-                                      style: TextStyle(
-                                          color: Colors.white70, fontSize: 13),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      "MAC: $macAddress",
-                                      style: const TextStyle(
-                                          color: Colors.white54, fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
-                                    child: const Text("Cancel",
-                                        style:
-                                            TextStyle(color: Colors.white70)),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFF00BFA5)),
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    child: const Text(
-                                        "Already Paired - Continue",
-                                        style: TextStyle(color: Colors.white)),
-                                  ),
-                                ],
-                              ),
-                            ) ??
-                            false;
-                      }
-
-                      if (!shouldProceed) return;
-
-                      // Show loading dialog
-                      if (!context.mounted) return;
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: const Color(0xFF121A2D),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const CircularProgressIndicator(
-                                  color: Colors.cyanAccent),
-                              const SizedBox(height: 16),
-                              Text(
-                                isBonded
-                                    ? "Connecting to paired device..."
-                                    : "Connecting...",
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      // Try connect
-                      try {
-                        await glove.connectToDevice(result.device);
-
-                        // Close loading dialog
-                        if (context.mounted) Navigator.pop(context);
-
-                        // Show success message
-                        if (context.mounted && glove.isConnected) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("✅ Connected to MediGrip Device!"),
-                              backgroundColor: Colors.green,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        // Close loading dialog
-                        if (context.mounted) Navigator.pop(context);
-
-                        // Show error message
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text("❌ Connection failed: ${e.toString()}"),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 3),
-                            ),
-                          );
-                        }
-                      }
-                    },
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                const Text("Cancel", style: TextStyle(color: Colors.white70)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00BFA5)),
-            onPressed: () {
-              glove.startScan();
-            },
-            child: const Text("Scan", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
+  void select(int i) {
+    setState(() {
+      if (i == 2) _progressStopwatch = Stopwatch()..start();
+      _tab = i;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. AMBIL DATA PROVIDER
-    final glove = context.watch<GloveProvider>();
-
-    // 2. LOGIKA SAPAAN OTOMATIS (MAGIC DISINI 🌟)
-    // Kita ambil jam saat ini (format 0-23)
-    var hour = DateTime.now().hour;
-    String greeting;
-
-    if (hour < 11) {
-      greeting = "Good Morning";
-    } else if (hour < 15) {
-      greeting = "Good Afternoon";
-    } else if (hour < 19) {
-      greeting = "Good Evening";
-    } else {
-      greeting = "Good Night";
-    }
-
+    final body = switch (_tab) {
+      0 => BerandaTab(onSelectTab: select),
+      1 => const TrainingLogScreen(),
+      2 => ProgressScreen(openStopwatch: _progressStopwatch),
+      _ => const DeviceScreen(),
+    };
     return Scaffold(
-      backgroundColor: const Color(0xFF0B101F), // Deep Navy sesuai gambar
+      extendBody: true,
+      body: body,
+      bottomNavigationBar: _PillNavBar(index: _tab, onTap: select),
+    );
+  }
+}
 
-      // --- APP BAR ---
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          "WanurGlove",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+class _PillNavBar extends StatelessWidget {
+  final int index;
+  final ValueChanged<int> onTap;
+  const _PillNavBar({required this.index, required this.onTap});
+
+  static const _items = [
+    (Icons.home_rounded, 'Beranda'),
+    (Icons.event_note_rounded, 'Riwayat'),
+    (Icons.insights_rounded, 'Progres'),
+    (Icons.back_hand_rounded, 'Glove'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Container(
+        height: 66,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(color: AppColors.dark.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 8)),
+          ],
         ),
-        actions: [
-          // BLUETOOTH AUTO-CONNECT BUTTON
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: _isRetrying
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.cyanAccent,
-                      ),
-                    ),
-                  )
-                : IconButton(
-                    icon: Icon(
-                      glove.isConnected
-                          ? Icons.bluetooth_connected
-                          : Icons.bluetooth,
-                      color: glove.isConnected
-                          ? Colors.greenAccent
-                          : Colors.cyanAccent,
-                    ),
-                    onPressed: () {
-                      final glove = context.read<GloveProvider>();
-                      _tryAutoConnect(glove);
-                    },
-                    tooltip:
-                        glove.isConnected ? "Reconnect" : "Connect to MediGrip",
-                  ),
-          )
-        ],
-      ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            // --- HEADER TEXT DYNAMIC ---
-            Text(
-              "Hello, $greeting!",
-              style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.cyanAccent),
-            ),
-            Text(
-              "Ready to excercise today?",
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
-            ),
-
-            const SizedBox(height: 24),
-
-            // STATUS INFO - BLE Connection
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                  color: const Color(0xFF121A2D),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.cyanAccent.withOpacity(0.3))),
-              child: Row(
-                children: [
-                  Icon(
-                      glove.isConnected
-                          ? Icons.bluetooth_connected
-                          : Icons.bluetooth_disabled,
-                      color: glove.isConnected
-                          ? Colors.greenAccent
-                          : Colors.white54),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            for (var i = 0; i < _items.length; i++)
+              Expanded(
+                flex: i == index ? 2 : 1,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                    decoration: BoxDecoration(
+                      color: i == index ? AppColors.ink : Colors.transparent,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          glove.isConnected
-                              ? "Connected to WanurGlove"
-                              : "⚠️ No Device Connected",
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                        Text(
-                          glove.isConnected
-                              ? "Device connected!"
-                              : "Connecting to device...",
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.white70),
-                        ),
+                        Icon(_items[i].$1, size: 22, color: i == index ? Colors.white : AppColors.muted),
+                        if (i == index) ...[
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(_items[i].$2,
+                                overflow: TextOverflow.fade,
+                                softWrap: false,
+                                style: const TextStyle(
+                                    color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // --- CARD 1: MAGIC TILES GAME ---
-            ActionCard(
-              title: "Training Game",
-              subtitle: "Play rhythm game for finger training",
-              icon: Icons.piano,
-              themeColor: const Color(0xFF6A1B9A),
-              buttonText: "Start Game",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const GameWebViewScreen()),
-                );
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // --- CARD 2: FINGER CALIBRATION (TOUCH SENSOR) ---
-            ActionCard(
-              title: "Finger Calibration",
-              subtitle: "Check sensor response",
-              icon: Icons.touch_app,
-              themeColor: const Color(0xFF4A5240),
-              buttonText: "Start Calibration",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const TouchMenuScreen()),
-                );
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // --- CARD 3: GRIP MEASUREMENT (LOADCELL) ---
-            ActionCard(
-              title: "Grip Measurement",
-              subtitle: "Measure hand grip strength",
-              icon: Icons.back_hand,
-              themeColor: const Color(0xFF00BFA5),
-              buttonText: "Start Measure",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const MeasurementScreen()),
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-            // === AKSI KEYMAP ===
-            // Container(
-            //   padding: const EdgeInsets.all(15),
-            //   decoration: BoxDecoration(
-            //     color: const Color(0xFF121A2D),
-            //     borderRadius: BorderRadius.circular(12),
-            //     border: Border.all(color: Colors.cyanAccent.withOpacity(0.3)),
-            //   ),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       const Text(
-            //         "Keymap",
-            //         style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
-            //       ),
-            //       const SizedBox(height: 8),
-            //       Text(
-            //         "Saat ini: ${glove.keyMap['index1']}${glove.keyMap['index2']}${glove.keyMap['index3']}${glove.keyMap['index4']}",
-            //         style: const TextStyle(color: Colors.white70),
-            //       ),
-            //       const SizedBox(height: 8),
-            //       Row(
-            //         children: [
-            //           ElevatedButton(
-            //             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5)),
-            //             onPressed: () async {
-            //               await glove.sendKeymapToESP();
-            //             },
-            //             child: const Text("Kirim ke ESP", style: TextStyle(color: Colors.white)),
-            //           ),
-            //           const SizedBox(width: 8),
-            //           OutlinedButton(
-            //             onPressed: () {
-            //               // contoh toggle cepat
-            //               final cur = glove.keyMap;
-            //               context.read<GloveProvider>().updateLocalKey('index1', cur['index1'] == 'f' ? 'a' : 'f');
-            //             },
-            //             child: const Text("Ubah Cepat"),
-            //           ),
-            //         ],
-            //       ),
-            //     ],
-            //   ),
-            // )
           ],
         ),
       ),
@@ -570,82 +138,287 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- WIDGET KARTU (Tidak Berubah) ---
-class ActionCard extends StatelessWidget {
-  final String title, subtitle, buttonText;
-  final IconData icon;
-  final Color themeColor;
-  final VoidCallback onPressed;
+/// Data ringkas untuk Beranda (dibaca dari nilai tersimpan).
+class _HomeData {
+  final DateTime refNow;
+  final WeeklySummaryRow? week;
+  final int target;
+  final Set<int> trainedWeekdays; // 1..7, hari dengan sesi >= 5 menit
+  final GripTestRow? lastGrip;
+  const _HomeData(this.refNow, this.week, this.target, this.trainedWeekdays, this.lastGrip);
+}
 
-  const ActionCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.buttonText,
-    required this.icon,
-    required this.themeColor,
-    required this.onPressed,
-  });
+class BerandaTab extends StatefulWidget {
+  final ValueChanged<int> onSelectTab;
+  const BerandaTab({super.key, required this.onSelectTab});
+
+  @override
+  State<BerandaTab> createState() => _BerandaTabState();
+}
+
+class _BerandaTabState extends State<BerandaTab> {
+  Future<_HomeData>? _future;
+  int _version = -1;
+  String _scope = '';
+  int _devTaps = 0;
+
+  /// Muat ulang bila data logbook berubah atau sumber data diganti.
+  /// Dipanggil di awal build (bukan didChangeDependencies) karena memakai context.watch.
+  void _syncWith(DataSourceController s) {
+    if (s.dataVersion != _version || s.scope != _scope) {
+      _version = s.dataVersion;
+      _scope = s.scope;
+      _future = _load(s.scope);
+    }
+  }
+
+  Future<_HomeData> _load(String scope) async {
+    final repo = TrainingRepository.instance;
+    final ref = DateTime.fromMillisecondsSinceEpoch(await repo.referenceNowMs(scope));
+    final ws = weekStartLocal(ref);
+    final week = await repo.weekSummary(scope, ws.millisecondsSinceEpoch);
+    final target = week?.target ?? await repo.currentTarget();
+    final sessions = await repo.sessions(scope,
+        fromMs: ws.millisecondsSinceEpoch, toMs: nextWeekStart(ws).millisecondsSinceEpoch);
+    final days = {for (final s in sessions) if (s.qualifiesForTarget) s.start.weekday};
+    final grips = await repo.gripTests(scope);
+    return _HomeData(ref, week, target, days, grips.isEmpty ? null : grips.last);
+  }
+
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 11) return 'Selamat pagi.';
+    if (h < 15) return 'Selamat siang.';
+    if (h < 19) return 'Selamat sore.';
+    return 'Selamat malam.';
+  }
+
+  void _onTitleTap(DataSourceController s) {
+    // Toggle tersembunyi: ketuk sapaan 7 kali untuk membuka menu pengembang.
+    if (s.devUnlocked) return;
+    _devTaps++;
+    if (_devTaps >= 7) {
+      s.setDevUnlocked(true);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Menu pengembang aktif')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white70,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
-        ],
+    final sources = context.watch<DataSourceController>();
+    _syncWith(sources);
+    final glove = context.watch<GloveProvider>();
+    final connected = sources.useSim || glove.isConnected;
+    return SafeArea(
+      bottom: false,
+      child: RefreshIndicator(
+        color: AppColors.accent,
+        onRefresh: () async {
+          setState(() => _future = _load(sources.scope));
+          await _future;
+        },
+        child: FutureBuilder<_HomeData>(
+          future: _future,
+          builder: (context, snap) {
+            final d = snap.data;
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: MicroLabel(
+                        '${Fmt.dayDate(d?.refNow ?? DateTime.now())}${sources.useSim ? ' · simulasi' : ''}'),
+                  ),
+                  if (sources.devUnlocked)
+                    RoundIconButton(Icons.tune_rounded,
+                        tooltip: 'Pengaturan Pengembang',
+                        onTap: () => Navigator.push(
+                            context, MaterialPageRoute(builder: (_) => const DevSettingsScreen()))),
+                  const SizedBox(width: 8),
+                  _ConnectionChip(connected: connected, sim: sources.useSim, onTap: () => widget.onSelectTab(3)),
+                ]),
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: () => _onTitleTap(sources),
+                  child: Text(_greeting(),
+                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: -1.2)),
+                ),
+                const Text('Siap latihan hari ini?',
+                    style: TextStyle(fontSize: 15, color: AppColors.inkSoft)),
+                const SizedBox(height: 20),
+                if (sources.useSim && d != null)
+                  SimBanner('MODE SIMULASI · data s.d. ${Fmt.date(d.refNow)}'),
+                _WeekHero(data: d),
+                const SizedBox(height: 14),
+                Row(children: [
+                  Expanded(
+                    child: StatTile(
+                      label: 'Tes genggam',
+                      value: d?.lastGrip == null ? '–' : Fmt.n1(d!.lastGrip!.value),
+                      unit: d?.lastGrip == null ? null : 'kg*',
+                      sub: d?.lastGrip == null
+                          ? 'Belum ada tes'
+                          : '${Fmt.pct(d!.lastGrip!.changeFromFirstPct, signed: true)} dari awal · ${d.lastGrip!.handLabel.toLowerCase()}',
+                      subColor: (d?.lastGrip?.changeFromFirstPct ?? 0) > 0 ? AppColors.success : null,
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const GripTestScreen())),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: StatTile(
+                      label: 'Menit aktif',
+                      value: Fmt.n0(d?.week?.activeMinTotal ?? 0),
+                      unit: 'mnt',
+                      sub: 'minggu ini',
+                      onTap: () => widget.onSelectTab(2),
+                    ),
+                  ),
+                ]),
+                const ForceFootnote(),
+                const SectionHeader('Menu'),
+                MenuRow(
+                  icon: Icons.event_note_rounded,
+                  title: 'Riwayat Latihan',
+                  subtitle: 'Semua sesi, dikelompokkan per minggu',
+                  onTap: () => widget.onSelectTab(1),
+                ),
+                const SizedBox(height: 10),
+                MenuRow(
+                  icon: Icons.insights_rounded,
+                  title: 'Progres Pemulihan',
+                  subtitle: 'Kepatuhan, tren genggam, sebaran jari',
+                  iconBg: AppColors.accentSoft,
+                  iconFg: AppColors.accentDeep,
+                  onTap: () => widget.onSelectTab(2),
+                ),
+                const SizedBox(height: 10),
+                MenuRow(
+                  icon: Icons.back_hand_outlined,
+                  title: 'Tes Genggam',
+                  subtitle: '3 percobaan terpandu',
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const GripTestScreen())),
+                ),
+                const SizedBox(height: 10),
+                MenuRow(
+                  icon: Icons.touch_app_outlined,
+                  title: 'Kalibrasi Jari',
+                  subtitle: 'Cek respons tombol tiap jari',
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const TouchMenuScreen())),
+                ),
+              ],
+            );
+          },
+        ),
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: themeColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: themeColor, size: 30),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(subtitle,
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade600)),
-                  ],
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: onPressed,
-              child:
-                  Text(buttonText, style: const TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+class _ConnectionChip extends StatelessWidget {
+  final bool connected;
+  final bool sim;
+  final VoidCallback onTap;
+  const _ConnectionChip({required this.connected, required this.sim, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = sim ? 'Simulasi' : (connected ? 'Terhubung' : 'Belum terhubung');
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(99)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: sim ? AppColors.lime : (connected ? AppColors.success : AppColors.accent),
+              shape: BoxShape.circle,
             ),
           ),
-        ],
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        ]),
       ),
+    );
+  }
+}
+
+class _WeekHero extends StatelessWidget {
+  final _HomeData? data;
+  const _WeekHero({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = data;
+    final q = d?.week?.qualifyingCount ?? 0;
+    final target = d?.target ?? kDefaultWeeklyTarget;
+    final ws = weekStartLocal(d?.refNow ?? DateTime.now());
+    final today = (d?.refNow ?? DateTime.now()).weekday;
+    const dayLetters = ['S', 'S', 'R', 'K', 'J', 'S', 'M'];
+    return HeroCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              MicroLabel('Minggu ini · target $target sesi', color: Colors.white54),
+              const SizedBox(height: 10),
+              Text(Fmt.weekRange(ws),
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -1)),
+              const SizedBox(height: 6),
+              Text(
+                '${d?.week?.sessionsCount ?? 0} sesi · ${Fmt.n0(d?.week?.activeMinTotal ?? 0)} menit aktif',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ]),
+          ),
+          RingProgress(
+            value: target == 0 ? 0 : q / target,
+            size: 96,
+            center: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('$q/$target',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -1)),
+              const Text('sesi', style: TextStyle(color: Colors.white54, fontSize: 11)),
+            ]),
+          ),
+        ]),
+        const SizedBox(height: 18),
+        Row(children: [
+          for (var i = 1; i <= 7; i++)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Column(children: [
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: (d?.trainedWeekdays.contains(i) ?? false)
+                          ? AppColors.accent
+                          : Colors.white.withValues(alpha: i == today ? 0.35 : 0.12),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(dayLetters[i - 1],
+                      style: TextStyle(
+                          color: i == today ? Colors.white : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600)),
+                ]),
+              ),
+            ),
+        ]),
+        const SizedBox(height: 18),
+        PillButton(label: 'Mulai latihan', icon: Icons.play_arrow_rounded, onPressed: () => openTraining(context)),
+      ]),
     );
   }
 }

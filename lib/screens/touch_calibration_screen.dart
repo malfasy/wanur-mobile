@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/calibration_base_layout.dart';
 import '../providers/glove_provider.dart';
+import '../theme/app_theme.dart';
 
 class TouchCalibrationScreen extends StatefulWidget {
   const TouchCalibrationScreen({super.key});
@@ -14,6 +15,23 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
   final List<String> _sequence = ['pinky', 'ring', 'middle', 'index'];
   int _currentIndex = 0;
   bool _isAllDone = false;
+  bool _advancing = false;
+
+  static const Map<String, String> _fingerLabels = {
+    'pinky': 'KELINGKING',
+    'ring': 'MANIS',
+    'middle': 'TENGAH',
+    'index': 'TELUNJUK',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    // Kosongkan tombol terakhir supaya tekanan lama tidak langsung terhitung.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<GloveProvider>().resetLastKey();
+    });
+  }
 
   final Map<String, Offset> _offsets = {
     'pinky': const Offset(-80, -130),
@@ -35,7 +53,10 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
       final isPressed = (targetAssignedKey != null) &&
           (glove.data.lastKey.toString().toLowerCase() ==
               targetAssignedKey.toLowerCase());
-      if (isPressed) {
+      if (isPressed && !_advancing) {
+        // Guard: build bisa terpanggil berkali-kali dalam 300 ms (mis. notifikasi
+        // gaya 2 Hz), jadi pastikan satu tekanan hanya memajukan satu jari.
+        _advancing = true;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted && !_isAllDone) {
             setState(() {
@@ -45,7 +66,9 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
                 _isAllDone = true;
               }
             });
+            context.read<GloveProvider>().resetLastKey();
           }
+          _advancing = false;
         });
       }
     }
@@ -54,7 +77,7 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
     // Ambil huruf yang dipetakan dari provider menggunakan key 'index1'..'index4'
     final currentMapKey = _mapFingerKey(currentFingerKey);
     String assignedChar = glove.keyMap[currentMapKey] ?? "?";
-    String labelFinger = currentFingerKey.toUpperCase();
+    String labelFinger = _fingerLabels[currentFingerKey] ?? currentFingerKey.toUpperCase();
 
     return CalibrationBaseLayout(
       child: Stack(
@@ -102,10 +125,10 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
                     height: 50,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: AppColors.accent,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(color: Colors.greenAccent, blurRadius: 20)
+                          BoxShadow(color: AppColors.accent.withValues(alpha: 0.6), blurRadius: 20)
                         ]),
                     child: Text(assignedChar,
                         style: const TextStyle(
@@ -128,16 +151,16 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
   Widget _buildHeader(String labelFinger, String assignedChar) {
     // Text to display
     String text = _isAllDone
-        ? "CALIBRATION SUCCESS!"
-        : "MOVE $labelFinger FINGER ($assignedChar)";
+        ? "KALIBRASI BERHASIL"
+        : "TEKAN JARI $labelFinger ($assignedChar)";
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
           // Kasih background gelap biar kalaupun kena tangan, teksnya tetep kebaca
-          color: Colors.black87,
+          color: AppColors.dark,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.cyan.withOpacity(0.5), width: 1.5),
+          border: Border.all(color: Colors.white12, width: 1),
           boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 10)]),
       child: Text(
         text,
@@ -158,9 +181,9 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
         height: 55,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00BFA5)),
+              backgroundColor: AppColors.accent, shape: const StadiumBorder()),
           onPressed: () => Navigator.pop(context),
-          child: const Text("DONE",
+          child: const Text("SELESAI",
               style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -173,7 +196,7 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
         decoration: BoxDecoration(
             color: Colors.black45, borderRadius: BorderRadius.circular(20)),
         child: const Text(
-          "Waiting for sensor press...",
+          "Menunggu tekanan tombol…",
           style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
         ),
       );
