@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../widgets/calibration_base_layout.dart';
 import '../theme/app_theme.dart';
 import 'touch_edit_screen.dart';        // Import Halaman Edit
@@ -80,7 +80,7 @@ class TouchMenuScreen extends StatelessWidget {
           backgroundColor: color,
           shape: const StadiumBorder(),
           elevation: 5,
-          shadowColor: color.withOpacity(0.5),
+          shadowColor: color.withValues(alpha: 0.5),
         ),
         onPressed: onTap,
         icon: Icon(icon, color: Colors.white),

@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../data/data_source_controller.dart';
@@ -299,12 +299,12 @@ class GripLineChart extends StatelessWidget {
         maxX: spanX,
         minY: minY,
         maxY: maxY,
-        lineTouchData: LineTouchData(enabled: false),
+        lineTouchData: const LineTouchData(enabled: false),
         borderData: FlBorderData(show: false),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          getDrawingHorizontalLine: (v) => FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
+          getDrawingHorizontalLine: (v) => const FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
         ),
         titlesData: FlTitlesData(
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -376,7 +376,7 @@ class _ActiveMinutesCard extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (v) =>
-                      FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
+                      const FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
                 ),
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
