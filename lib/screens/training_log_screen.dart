@@ -78,17 +78,11 @@ class _TrainingLogScreenState extends State<TrainingLogScreen> {
           builder: (context, snap) {
             final d = snap.data;
             final children = <Widget>[
-              const MicroLabel('Logbook'),
-              const SizedBox(height: 8),
-              const Text('Riwayat Latihan',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -1.2)),
-              const SizedBox(height: 16),
-              if (sources.useSim && d != null) SimBanner('MODE SIMULASI · data s.d. ${Fmt.date(d.refNow)}'),
+              const PageHeader(eyebrow: 'Logbook', title: 'Riwayat', highlight: 'latihan'),
+              if (sources.useSim && d != null) SimBanner('Mode simulasi · data s.d. ${Fmt.date(d.refNow)}'),
               _ThisWeekCard(data: d),
-              const SizedBox(height: 12),
-              PillButton(
-                  label: 'Mulai latihan', icon: Icons.add_rounded, dark: true, onPressed: () => openTraining(context)),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
+              PillButton(label: 'Mulai latihan', icon: Icons.add_rounded, onPressed: () => openTraining(context)),
             ];
             if (snap.connectionState == ConnectionState.waiting && d == null) {
               children.add(const Padding(
@@ -116,14 +110,14 @@ class _TrainingLogScreenState extends State<TrainingLogScreen> {
                 }
               }
             }
-            children.add(const SizedBox(height: 8));
+            children.add(const SectionHeader('Arsip'));
             children.add(MenuRow(
               icon: Icons.inventory_2_outlined,
               title: 'Arsip pengukuran lama',
               subtitle: 'Data dari versi sebelumnya (hanya dibaca)',
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
             ));
-            return ListView(padding: const EdgeInsets.fromLTRB(20, 12, 20, 120), children: children);
+            return ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 110), children: children);
           },
         ),
       ),
@@ -142,17 +136,20 @@ class _ThisWeekCard extends StatelessWidget {
     final segments = y < 1 ? 1 : (y > 14 ? 14 : y);
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const MicroLabel('Minggu ini'),
+        const SizedBox(height: 6),
         Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-          const Text('Minggu ini: ', style: TextStyle(fontSize: 16, color: AppColors.inkSoft)),
-          Text('$q dari $y sesi',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+          Text('$q', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+          Text(' dari $y sesi', style: const TextStyle(fontSize: 14, color: AppColors.inkSoft)),
+          const Spacer(),
+          if (q >= y) const Tag('Target tercapai', bg: AppColors.successSoft, fg: AppColors.success),
         ]),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Row(children: [
           for (var i = 0; i < segments; i++)
             Expanded(
               child: Container(
-                height: 10,
+                height: 7,
                 margin: const EdgeInsets.symmetric(horizontal: 2),
                 decoration: BoxDecoration(
                   color: i < q ? AppColors.accent : AppColors.surfaceMuted,
@@ -161,11 +158,10 @@ class _ThisWeekCard extends StatelessWidget {
               ),
             ),
         ]),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
-          'Sesi dihitung untuk target bila durasi aktif ≥ ${kQualifyingActiveMin.toStringAsFixed(0)} menit.'
-          '${q > y ? ' Target sudah terlampaui.' : ''}',
-          style: const TextStyle(fontSize: 12, color: AppColors.muted),
+          'Dihitung bila durasi aktif ≥ ${kQualifyingActiveMin.toStringAsFixed(0)} menit',
+          style: AppText.small,
         ),
       ]),
     );
@@ -182,16 +178,10 @@ class _WeekHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = DateTime.fromMillisecondsSinceEpoch(weekStartMs);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 18, 4, 10),
+      padding: const EdgeInsets.fromLTRB(2, 18, 2, 8),
       child: Row(children: [
-        Expanded(
-          child: Text(Fmt.weekRange(ws),
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-        ),
-        Text(
-          '$count sesi · ${Fmt.n0(summary?.activeMinTotal ?? 0)} mnt aktif',
-          style: const TextStyle(fontSize: 12, color: AppColors.muted, fontFamily: 'monospace'),
-        ),
+        Expanded(child: MicroLabel(Fmt.weekRange(ws))),
+        MicroLabel('$count sesi · ${Fmt.n0(summary?.activeMinTotal ?? 0)} mnt'),
       ]),
     );
   }
@@ -207,37 +197,37 @@ class _SessionCard extends StatelessWidget {
     final least = s.leastUsedFinger;
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(14),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
+      child: Row(children: [
         DateTile(s.start, highlight: s.qualifiesForTarget),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${Fmt.dayDate(s.start)} · ${Fmt.time(s.start)}',
-                style: const TextStyle(fontSize: 13, color: AppColors.muted)),
-            const SizedBox(height: 2),
             Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
               Text(Fmt.n1(s.activeMin),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
-              const Text(' mnt aktif', style: TextStyle(fontSize: 13, color: AppColors.inkSoft)),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+              const Text(' mnt aktif', style: TextStyle(fontSize: 12.5, color: AppColors.inkSoft)),
+              const Spacer(),
+              Text(Fmt.time(s.start), style: AppText.label),
             ]),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
-              '${Fmt.n0(s.totalPresses)} tekanan · ${s.pressRate == null ? '–' : Fmt.n1(s.pressRate)} /mnt',
-              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+              '${Fmt.n0(s.totalPresses)} tekanan · ${s.pressRate == null ? '–' : Fmt.n1(s.pressRate)}/mnt',
+              style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
             ),
-            const SizedBox(height: 8),
-            Wrap(spacing: 6, runSpacing: 6, children: [
+            const SizedBox(height: 6),
+            Wrap(spacing: 5, runSpacing: 5, children: [
               if (least != null)
                 Tag('Jarang: ${kFingerNames[least]}', bg: AppColors.accentSoft, fg: AppColors.accentDeep),
               if (s.totalPresses == 0) const Tag('Tanpa tekanan'),
               if (!s.qualifiesForTarget && s.totalPresses > 0) const Tag('< 5 mnt'),
               if (s.bleDisconnects > 0)
-                Tag('${s.bleDisconnects}x terputus', icon: Icons.bluetooth_disabled_rounded),
+                Tag('${s.bleDisconnects}x terputus',
+                    icon: Icons.bluetooth_disabled_rounded, bg: AppColors.warningSoft, fg: AppColors.warning),
             ]),
           ]),
         ),
-        const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+        const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 20),
       ]),
     );
   }

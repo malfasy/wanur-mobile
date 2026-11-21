@@ -38,7 +38,7 @@ class _FingerDistributionScreenState extends State<FingerDistributionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Sebaran jari'),
         leadingWidth: 64,
@@ -57,14 +57,14 @@ class _FingerDistributionScreenState extends State<FingerDistributionScreen> {
           final least = leastUsedFinger(counts);
           final total = counts.fold<int>(0, (a, b) => a + b);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+            padding: const EdgeInsets.fromLTRB(18, 4, 18, 32),
             children: [
               Segmented<int>(
                 items: const [(4, '4 mgg'), (8, '8 mgg'), (12, '12 mgg'), (0, 'Semua')],
                 value: _period,
                 onChanged: (v) => setState(() => _period = v),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               if (weeks.isNotEmpty)
                 MicroLabel('${Fmt.date(weeks.first.weekStart)} – '
                     '${Fmt.date(nextWeekStart(weeks.last.weekStart).subtract(const Duration(days: 1)))}'),
@@ -73,12 +73,11 @@ class _FingerDistributionScreenState extends State<FingerDistributionScreen> {
                 least == null || pct == null
                     ? 'Belum ada tekanan.'
                     : '${kFingerNames[least]} paling jarang dipakai.',
-                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: -1.1, height: 1.1),
+                style: AppText.title.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 6),
-              Text('${Fmt.n0(total)} tekanan dalam periode ini',
-                  style: const TextStyle(color: AppColors.inkSoft)),
-              const SizedBox(height: 18),
+              Text('${Fmt.n0(total)} tekanan dalam periode ini', style: AppText.body),
+              const SizedBox(height: 12),
               AppCard(
                 child: Column(children: [
                   for (var i = 0; i < 4; i++)
@@ -86,14 +85,14 @@ class _FingerDistributionScreenState extends State<FingerDistributionScreen> {
                       label: kFingerNames[i],
                       pct: pct?[i] ?? 0,
                       trailing: '${Fmt.pct(pct?[i])} · ${Fmt.n0(counts[i])}',
-                      color: i == least ? AppColors.accent : AppColors.dark2,
+                      color: i == least ? AppColors.dark : AppColors.accent,
                       emphasize: i == least,
                     ),
                 ]),
               ),
               const SizedBox(height: 12),
               if (least != null && pct != null && pct[least] < 10)
-                Callout(
+                Callout.warning(
                   title: '${kFingerNames[least]} hanya ${Fmt.pct(pct[least])} dari tekanan',
                   body: 'Catatan ini untuk pemantauan latihan dan bisa dibahas bersama terapis.',
                 ),

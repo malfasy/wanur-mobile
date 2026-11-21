@@ -29,7 +29,7 @@ class CalibrationBaseLayout extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [AppColors.dark, AppColors.dark2, Color(0xFF3A2620)],
+                colors: [AppColors.dark, AppColors.dark2, Color(0xFF14809F)],
                 stops: [0, 0.65, 1],
               ),
             ),

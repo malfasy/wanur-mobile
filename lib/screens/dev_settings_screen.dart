@@ -118,7 +118,7 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<DataSourceController>();
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Pengaturan Pengembang'),
         leadingWidth: 64,

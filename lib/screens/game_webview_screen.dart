@@ -120,8 +120,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
+    return AppScaffold(
       appBar: AppBar(
         leadingWidth: 64,
         leading: Padding(
@@ -161,7 +160,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
       ]),
       floatingActionButton: _sources.useSim && _simProgress == null
           ? FloatingActionButton.extended(
-              backgroundColor: AppColors.ink,
+              backgroundColor: AppColors.dark,
               foregroundColor: Colors.white,
               onPressed: _playSim,
               icon: const Icon(Icons.play_circle_outline_rounded),

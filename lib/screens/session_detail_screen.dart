@@ -21,7 +21,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Detail sesi'),
         leadingWidth: 64,
@@ -55,72 +55,53 @@ class _DetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final endLabel = s.endReason == 'timeout' ? 'berakhir otomatis (2 menit tanpa tekanan)' : 'layar latihan ditutup';
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 32),
       children: [
-        MicroLabel('Sesi · ${Fmt.dayDate(s.start)}${s.source == 'sim' ? ' · simulasi' : ''}'),
-        const SizedBox(height: 8),
-        Text('${Fmt.time(s.start)} – ${Fmt.time(s.end)}',
-            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w700, letterSpacing: -1.4)),
-        const SizedBox(height: 4),
-        Text('Durasi sesi ${Fmt.duration(s.durationMs)} · $endLabel',
-            style: const TextStyle(fontSize: 13, color: AppColors.inkSoft)),
-        const SizedBox(height: 18),
-        Row(children: [
-          Expanded(
-            child: StatTile(
+        PageHeader(
+          eyebrow: 'Sesi · ${Fmt.dayDate(s.start)}${s.source == 'sim' ? ' · simulasi' : ''}',
+          title: Fmt.time(s.start),
+          highlight: '– ${Fmt.time(s.end)}',
+        ),
+        Text('Durasi sesi ${Fmt.duration(s.durationMs)} · $endLabel', style: AppText.body),
+        const SizedBox(height: 14),
+        TileRow(children: [
+          StatTile(
               label: 'Durasi aktif',
               value: Fmt.n1(s.activeMin),
               unit: 'menit',
               sub: s.qualifiesForTarget ? 'dihitung untuk target' : 'di bawah 5 menit',
-              subColor: s.qualifiesForTarget ? AppColors.success : AppColors.muted,
+              subColor: s.qualifiesForTarget ? AppColors.lime : null,
               dark: true,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: StatTile(
-              label: 'Laju tekanan',
-              value: s.pressRate == null ? '–' : Fmt.n1(s.pressRate),
-              unit: 'tekanan/mnt',
-              sub: '${Fmt.n0(s.totalPresses)} tekanan total',
-            ),
+          StatTile(
+            label: 'Laju tekanan',
+            value: s.pressRate == null ? '–' : Fmt.n1(s.pressRate),
+            unit: '/mnt',
+            sub: '${Fmt.n0(s.totalPresses)} tekanan total',
           ),
         ]),
-        const SizedBox(height: 12),
-        AppCard(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Expanded(
-                  child: Text('Tekanan per jari', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-              Tag('keymap ${s.keymap}'),
-            ]),
-            const SizedBox(height: 18),
-            SizedBox(height: 190, child: FingerBarChart(presses: s.presses, keymap: s.keymap)),
-          ]),
+        const SizedBox(height: 10),
+        ChartCard(
+          title: 'Tekanan per jari',
+          trailing: Tag('keymap ${s.keymap}'),
+          child: SizedBox(height: 170, child: FingerBarChart(presses: s.presses, keymap: s.keymap)),
         ),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-            child: StatTile(
-              label: 'Jeda antar-tekanan',
-              value: s.ipiMedianS == null ? '–' : Fmt.n1(s.ipiMedianS),
-              unit: 'detik',
-              sub: 'median',
-            ),
+        const SizedBox(height: 10),
+        TileRow(children: [
+          StatTile(
+            label: 'Jeda tekanan',
+            value: s.ipiMedianS == null ? '–' : Fmt.n1(s.ipiMedianS),
+            unit: 'detik',
+            sub: 'median antar-tekanan',
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: StatTile(
-              label: 'Gaya genggam',
-              value: Fmt.n1(s.forceMedian),
-              unit: 'kg*',
-              sub: 'median sesi',
-            ),
+          StatTile(
+            label: 'Gaya genggam',
+            value: Fmt.n1(s.forceMedian),
+            unit: 'kg*',
+            sub: 'median sesi',
           ),
         ]),
-        const SizedBox(height: 12),
-        const MicroLabel('Kualitas data'),
-        const SizedBox(height: 8),
+        const SectionHeader('Kualitas data'),
         if (s.bleDisconnects == 0)
           const Callout(
             title: 'Sambungan stabil',
@@ -129,7 +110,7 @@ class _DetailBody extends StatelessWidget {
             dot: AppColors.success,
           )
         else
-          Callout(
+          Callout.warning(
             title: 'Sambungan terputus ${s.bleDisconnects} kali',
             body: 'Tekanan dan gaya selama sambungan terputus tidak tercatat, jadi angka sesi ini bisa lebih rendah.',
           ),
@@ -196,13 +177,13 @@ class FingerBarChart extends StatelessWidget {
             BarChartGroupData(x: i, barRods: [
               BarChartRodData(
                 toY: presses[i].toDouble(),
-                width: 34,
-                color: i == least ? AppColors.accent : AppColors.dark2,
-                borderRadius: BorderRadius.circular(10),
+                width: 30,
+                color: i == least ? AppColors.dark : AppColors.accent,
+                borderRadius: BorderRadius.circular(8),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
                   toY: maxV == 0 ? 1 : maxV * 1.25,
-                  color: AppColors.bg,
+                  color: AppColors.surfaceMuted,
                 ),
               ),
             ]),
