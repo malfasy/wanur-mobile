@@ -1,0 +1,23 @@
+indikator,dibandingkan,sesuai,kesesuaian_pct
+Jumlah sesi (per profil),10,10,100.00
+Waktu selesai sesi,335,335,100.00
+Durasi aktif (menit),335,335,100.00
+Tekanan per jari,335,335,100.00
+Total tekanan,335,335,100.00
+Laju tekanan (/menit),335,335,100.00
+Jeda antar-tekanan median (s),335,335,100.00
+Gaya genggam sesi median (kg*),335,335,100.00
+BLE terputus (count),335,335,100.00
+Sesi >= 5 menit aktif,335,335,100.00
+Jari paling jarang,335,335,100.00
+Minggu kalender sesi,335,335,100.00
+Jumlah minggu (per profil),10,10,100.00
+Sesi per minggu,80,80,100.00
+Sesi memenuhi syarat per minggu,80,80,100.00
+Menit aktif per minggu,80,80,100.00
+Sebaran jari (%),80,80,100.00
+Kepatuhan (%),80,80,100.00
+Jumlah tes genggam (per profil),10,10,100.00
+Nilai percobaan genggam (kg*),148,148,100.00
+Nilai tes genggam (kg*),148,148,100.00
+Perubahan dari tes pertama (%),148,148,100.00
