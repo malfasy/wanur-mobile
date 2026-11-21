@@ -11,6 +11,8 @@ Branch: `feature/logbook-dashboard`. Hardware glove, firmware ESP32, dan game we
 | `printing` | `^5.14.2` | membuka menu share Android untuk PDF (`Printing.sharePdf`) |
 | `path_provider` | `^2.1.5` | folder ekspor indikator yang bisa diambil dengan `adb pull` |
 
+Font yang dibundel di `assets/fonts/` (SIL Open Font License, teks lisensi ikut disertakan): Plus Jakarta Sans (teks utama), Space Grotesk (judul dan angka), Space Mono (label kecil). Instance statis 400/500/600/700 dibuat dari font variabel Google Fonts dengan fontTools.
+
 Paket lama yang dipakai lebih banyak: `sqflite` (skema v2), `intl` (format tanggal dan angka bahasa Indonesia), `shared_preferences` (sumber data dan opsi pengembang), `webview_flutter` (`loadFlutterAsset` untuk halaman uji FR6).
 
 Untuk Methods, tulis **versi yang benar-benar terpasang** dari `pubspec.lock` setelah `flutter pub get`:

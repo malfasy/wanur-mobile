@@ -444,7 +444,7 @@ class _TargetCardState extends State<_TargetCard> {
             width: 34,
             child: Text('$_v',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700)),
           ),
           RoundIconButton(Icons.add_rounded,
               size: 34, bg: AppColors.surfaceMuted, onTap: _v < 14 ? () => setState(() => _v++) : null),

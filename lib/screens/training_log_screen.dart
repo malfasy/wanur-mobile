@@ -139,7 +139,7 @@ class _ThisWeekCard extends StatelessWidget {
         const MicroLabel('Minggu ini'),
         const SizedBox(height: 6),
         Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-          Text('$q', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+          Text('$q', style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
           Text(' dari $y sesi', style: const TextStyle(fontSize: 14, color: AppColors.inkSoft)),
           const Spacer(),
           if (q >= y) const Tag('Target tercapai', bg: AppColors.successSoft, fg: AppColors.success),
@@ -205,7 +205,7 @@ class _SessionCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
               Text(Fmt.n1(s.activeMin),
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
               const Text(' mnt aktif', style: TextStyle(fontSize: 12.5, color: AppColors.inkSoft)),
               const Spacer(),
               Text(Fmt.time(s.start), style: AppText.label),

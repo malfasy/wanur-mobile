@@ -49,12 +49,16 @@ class AppColors {
 
 /// Gaya teks bersama.
 class AppText {
-  static const mono = 'monospace';
+  static const body = 'PlusJakartaSans';
+  static const display = 'SpaceGrotesk';
+  static const mono = 'SpaceMono';
   static const label = TextStyle(
-      fontFamily: mono, fontSize: 10.5, letterSpacing: 1.4, fontWeight: FontWeight.w600, color: AppColors.muted);
-  static const title = TextStyle(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: -0.8, height: 1.15);
-  static const cardTitle = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: -0.2);
-  static const body = TextStyle(fontSize: 13.5, color: AppColors.inkSoft, height: 1.35);
+      fontFamily: mono, fontSize: 10.5, letterSpacing: 0.9, fontWeight: FontWeight.w400, color: AppColors.muted);
+  static const title = TextStyle(
+      fontFamily: display, fontSize: 27, fontWeight: FontWeight.w700, letterSpacing: -0.9, height: 1.12);
+  static const cardTitle =
+      TextStyle(fontFamily: display, fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: -0.2);
+  static const bodyText = TextStyle(fontSize: 13.5, color: AppColors.inkSoft, height: 1.35);
   static const small = TextStyle(fontSize: 12, color: AppColors.muted);
 }
 
@@ -72,15 +76,18 @@ class AppTheme {
         onSurface: AppColors.ink,
       ),
       scaffoldBackgroundColor: AppColors.bg,
-      fontFamily: 'Roboto',
+      fontFamily: AppText.body,
     );
     final t = base.textTheme.apply(bodyColor: AppColors.ink, displayColor: AppColors.ink);
     return base.copyWith(
       textTheme: t.copyWith(
-        displayLarge: t.displayLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -2),
-        headlineLarge: t.headlineLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -1),
-        headlineMedium: t.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.8),
-        titleLarge: t.titleLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3),
+        displayLarge: t.displayLarge
+            ?.copyWith(fontFamily: AppText.display, fontWeight: FontWeight.w700, letterSpacing: -2),
+        headlineLarge: t.headlineLarge
+            ?.copyWith(fontFamily: AppText.display, fontWeight: FontWeight.w700, letterSpacing: -1),
+        headlineMedium: t.headlineMedium
+            ?.copyWith(fontFamily: AppText.display, fontWeight: FontWeight.w700, letterSpacing: -0.8),
+        titleLarge: t.titleLarge?.copyWith(fontFamily: AppText.display, fontWeight: FontWeight.w700),
         titleMedium: t.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
       appBarTheme: const AppBarTheme(
@@ -90,7 +97,7 @@ class AppTheme {
         centerTitle: true,
         foregroundColor: AppColors.ink,
         titleTextStyle: TextStyle(
-            color: AppColors.ink, fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+            color: AppColors.ink, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: AppText.display),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

@@ -62,7 +62,7 @@ class _DetailBody extends StatelessWidget {
           title: Fmt.time(s.start),
           highlight: '– ${Fmt.time(s.end)}',
         ),
-        Text('Durasi sesi ${Fmt.duration(s.durationMs)} · $endLabel', style: AppText.body),
+        Text('Durasi sesi ${Fmt.duration(s.durationMs)} · $endLabel', style: AppText.bodyText),
         const SizedBox(height: 14),
         TileRow(children: [
           StatTile(
@@ -165,7 +165,7 @@ class FingerBarChart extends StatelessWidget {
                     Text(kFingerNames[i], style: const TextStyle(fontSize: 11, color: AppColors.inkSoft)),
                     if (i < keymap.length)
                       Text(keymap[i].toUpperCase(),
-                          style: const TextStyle(fontSize: 10, color: AppColors.muted, fontFamily: 'monospace')),
+                          style: const TextStyle(fontSize: 10, color: AppColors.muted, fontFamily: 'SpaceMono')),
                   ]),
                 );
               },

@@ -78,7 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 style: const TextStyle(fontSize: 12, color: AppColors.muted)),
             const SizedBox(height: 2),
             Text('${Fmt.n1(item.kg)} kg*',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
           ]),
         ),
         Tag(item.status),

@@ -127,7 +127,7 @@ class _GlassNavBar extends StatelessWidget {
                               softWrap: false,
                               style: AppText.label.copyWith(
                                 fontSize: 9,
-                                letterSpacing: 0.8,
+                                letterSpacing: 0.3,
                                 color: i == index ? AppColors.dark : AppColors.muted,
                                 fontWeight: i == index ? FontWeight.w700 : FontWeight.w600,
                               )),
@@ -365,7 +365,7 @@ class _WeekHero extends StatelessWidget {
               MicroLabel('Minggu ini · target $target sesi', color: Colors.white70),
               const SizedBox(height: 8),
               Text(Fmt.weekRange(ws),
-                  style: const TextStyle(
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk',
                       color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
               const SizedBox(height: 4),
               Text(
@@ -380,7 +380,7 @@ class _WeekHero extends StatelessWidget {
             stroke: 7,
             center: Column(mainAxisSize: MainAxisSize.min, children: [
               Text('$q/$target',
-                  style: const TextStyle(
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk',
                       color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
               Text('SESI', style: AppText.label.copyWith(color: Colors.white70, fontSize: 8.5)),
             ]),

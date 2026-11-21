@@ -316,7 +316,7 @@ class StatTile extends StatelessWidget {
               child: Text(value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.8, color: fg)),
+                  style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.8, color: fg)),
             ),
             if (unit != null) ...[
               const SizedBox(width: 4),
@@ -603,7 +603,7 @@ class DateTile extends StatelessWidget {
               style: AppText.label.copyWith(
                   fontSize: 9.5, letterSpacing: 1, color: highlight ? AppColors.accentDeep : AppColors.muted)),
           const SizedBox(height: 1),
-          Text('${date.day}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          Text('${date.day}', style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 17, fontWeight: FontWeight.w700)),
         ]),
       );
 }

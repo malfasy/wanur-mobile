@@ -333,7 +333,7 @@ class _GripTestScreenState extends State<GripTestScreen> {
           track: AppColors.surfaceMuted,
           center: Column(mainAxisSize: MainAxisSize.min, children: [
             Text('$remainS',
-                style: TextStyle(
+                style: TextStyle(fontFamily: 'SpaceGrotesk',
                     fontSize: 64,
                     height: 1,
                     fontWeight: FontWeight.w700,
@@ -344,7 +344,7 @@ class _GripTestScreenState extends State<GripTestScreen> {
         ),
         const SizedBox(height: 28),
         Text(title,
-            style: TextStyle(
+            style: TextStyle(fontFamily: 'SpaceGrotesk',
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.6,
@@ -357,7 +357,7 @@ class _GripTestScreenState extends State<GripTestScreen> {
             const MicroLabel('Gaya sekarang'),
             const Spacer(),
             Text(_liveKg == null ? '–' : Fmt.n1(_liveKg),
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
             const Text(' kg*', style: TextStyle(color: AppColors.inkSoft)),
           ]),
         ),
@@ -391,7 +391,7 @@ class _GripTestScreenState extends State<GripTestScreen> {
         const SizedBox(height: 10),
         Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
           Text(Fmt.n1(r.value),
-              style: const TextStyle(
+              style: const TextStyle(fontFamily: 'SpaceGrotesk',
                   fontSize: 54, fontWeight: FontWeight.w700, letterSpacing: -2, height: 1, color: AppColors.accentDeep)),
           const Text(' kg*', style: TextStyle(fontSize: 17, color: AppColors.inkSoft)),
         ]),

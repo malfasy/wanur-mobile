@@ -238,7 +238,7 @@ class _SimPlaySheetState extends State<_SimPlaySheet> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Putar sesi simulasi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const Text('Putar sesi simulasi', style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Text('Profil ${widget.profileId} · ${kSimProfileNames[widget.profileId] ?? ''}',
               style: const TextStyle(color: AppColors.muted)),

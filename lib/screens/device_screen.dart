@@ -71,7 +71,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         ? glove.connectedDevice!.platformName
                         : 'MediGrip-Controller')
                     : 'Glove tidak terhubung',
-                style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               Text(
@@ -134,7 +134,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(keymap[i].toUpperCase(),
-                            style: TextStyle(
+                            style: TextStyle(fontFamily: 'SpaceGrotesk',
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: glove.data.lastKey == keymap[i] ? Colors.white : AppColors.ink)),
@@ -203,7 +203,7 @@ void showScanDialog(BuildContext context) {
           Row(children: [
             const Expanded(
                 child: Text('Pindai perangkat',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+                    style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700))),
             Consumer<GloveProvider>(
               builder: (_, g, __) => TextButton(
                 onPressed: g.isScanning ? null : g.startScan,

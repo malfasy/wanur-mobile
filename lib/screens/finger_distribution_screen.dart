@@ -76,7 +76,7 @@ class _FingerDistributionScreenState extends State<FingerDistributionScreen> {
                 style: AppText.title.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 6),
-              Text('${Fmt.n0(total)} tekanan dalam periode ini', style: AppText.body),
+              Text('${Fmt.n0(total)} tekanan dalam periode ini', style: AppText.bodyText),
               const SizedBox(height: 12),
               AppCard(
                 child: Column(children: [
