@@ -313,55 +313,92 @@ class _GripTestScreenState extends State<GripTestScreen> {
       _Phase.restBetween => ('Istirahat', 'Percobaan berikutnya segera'),
       _ => ('Menyimpan…', ''),
     };
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-      child: Column(children: [
-        Row(children: [
-          MicroLabel('Percobaan ${_trial + 1} dari 3 · ${_hand == 'left' ? 'kiri' : 'kanan'}'),
-          const Spacer(),
-          for (var i = 0; i < 3; i++) ...[
-            _TrialChip(index: i, value: i < _trialValues.length ? _trialValues[i] : null, current: i == _trial),
-            if (i < 2) const SizedBox(width: 6),
-          ],
-        ]),
-        const Spacer(),
-        RingProgress(
-          value: dur == 0 ? 1 : elapsed / dur,
-          size: 210,
-          stroke: 12,
-          color: isGrip ? AppColors.accent : AppColors.dark,
-          track: AppColors.surfaceMuted,
-          center: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('$remainS',
-                style: TextStyle(fontFamily: 'SpaceGrotesk',
-                    fontSize: 64,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -2,
-                    color: isGrip ? AppColors.accentDeep : AppColors.ink)),
-            const Text('detik', style: TextStyle(color: AppColors.muted)),
-          ]),
-        ),
-        const SizedBox(height: 28),
-        Text(title,
-            style: TextStyle(fontFamily: 'SpaceGrotesk',
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.6,
-                color: isGrip ? AppColors.accentDeep : AppColors.ink)),
+    final handLabel = _hand == 'left' ? 'kiri' : 'kanan';
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 20),
+      children: [
+        MicroLabel('Tes genggam · tangan $handLabel'),
         const SizedBox(height: 4),
-        Text(hint, style: const TextStyle(color: AppColors.inkSoft)),
-        const Spacer(),
+        Text.rich(
+          TextSpan(children: [
+            const TextSpan(text: 'Percobaan '),
+            TextSpan(text: '${_trial + 1}', style: const TextStyle(color: AppColors.accentDeep)),
+            const TextSpan(text: ' dari 3'),
+          ]),
+          style: AppText.title.copyWith(fontSize: 24),
+        ),
+        const SizedBox(height: 18),
+        Center(
+          child: RingProgress(
+            value: dur == 0 ? 1 : elapsed / dur,
+            size: 190,
+            stroke: 12,
+            color: isGrip ? AppColors.accent : AppColors.dark,
+            track: AppColors.surfaceMuted,
+            center: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('$remainS',
+                  style: TextStyle(
+                      fontFamily: 'SpaceGrotesk',
+                      fontSize: 60,
+                      height: 1,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -2,
+                      color: isGrip ? AppColors.accentDeep : AppColors.ink)),
+              const SizedBox(height: 2),
+              Text(title.toLowerCase().replaceAll('!', ''),
+                  style: AppText.label.copyWith(color: isGrip ? AppColors.accentDeep : AppColors.muted)),
+            ]),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Center(
+          child: Text(hint, style: AppText.bodyText),
+        ),
+        const SizedBox(height: 16),
         AppCard(
-          child: Row(children: [
-            const MicroLabel('Gaya sekarang'),
-            const Spacer(),
-            Text(_liveKg == null ? '–' : Fmt.n1(_liveKg),
-                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
-            const Text(' kg*', style: TextStyle(color: AppColors.inkSoft)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            for (var i = 0; i < 3; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: i < _trialValues.length
+                          ? AppColors.accent
+                          : (i == _trial ? AppColors.accentDeep : AppColors.line),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text('Percobaan ${i + 1}',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: i == _trial ? FontWeight.w700 : FontWeight.w500)),
+                  ),
+                  Text(
+                    i < _trialValues.length
+                        ? '${Fmt.n1(_trialValues[i])} kg*'
+                        : (i == _trial ? 'sedang berjalan' : '…'),
+                    style: i < _trialValues.length
+                        ? const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 15, fontWeight: FontWeight.w700)
+                        : AppText.small,
+                  ),
+                ]),
+              ),
+            const Divider(height: 18),
+            Row(children: [
+              const Expanded(child: Text('Hasil = rata-rata 3 percobaan', style: AppText.small)),
+              const MicroLabel('Gaya sekarang '),
+              Text(_liveKg == null ? '–' : '${Fmt.n1(_liveKg)} kg*',
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 14, fontWeight: FontWeight.w700)),
+            ]),
           ]),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
+        Center(child: MicroLabel('Tangan: $handLabel · istirahat 60 s')),
+        const SizedBox(height: 14),
         if (_phase == _Phase.restBetween && _sources.useSim)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -376,7 +413,7 @@ class _GripTestScreenState extends State<GripTestScreen> {
           },
         ),
         const ForceFootnote(),
-      ]),
+      ],
     );
   }
 
@@ -425,28 +462,4 @@ class _GripTestScreenState extends State<GripTestScreen> {
       ],
     );
   }
-}
-
-class _TrialChip extends StatelessWidget {
-  final int index;
-  final double? value;
-  final bool current;
-  const _TrialChip({required this.index, required this.value, required this.current});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: value != null ? AppColors.dark : (current ? AppColors.accentSoft : AppColors.glass),
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Text(
-          value != null ? Fmt.n1(value) : '${index + 1}',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: value != null ? Colors.white : (current ? AppColors.accentDeep : AppColors.muted),
-          ),
-        ),
-      );
 }

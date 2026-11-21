@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../logic/indicators.dart';
@@ -84,7 +83,7 @@ class _DetailBody extends StatelessWidget {
         ChartCard(
           title: 'Tekanan per jari',
           trailing: Tag('keymap ${s.keymap}'),
-          child: SizedBox(height: 170, child: FingerBarChart(presses: s.presses, keymap: s.keymap)),
+          child: FingerBarChart(presses: s.presses, keymap: s.keymap),
         ),
         const SizedBox(height: 10),
         TileRow(children: [
@@ -120,7 +119,8 @@ class _DetailBody extends StatelessWidget {
   }
 }
 
-/// Diagram batang tekanan per jari (Telunjuk, Tengah, Manis, Kelingking).
+/// Diagram batang horizontal tekanan per jari (Telunjuk, Tengah, Manis,
+/// Kelingking), sesuai wireframe Figure 2b. Jari paling jarang ditandai.
 class FingerBarChart extends StatelessWidget {
   final List<int> presses;
   final String keymap;
@@ -130,65 +130,54 @@ class FingerBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxV = presses.fold<int>(0, (a, b) => a > b ? a : b);
     final least = leastUsedFinger(presses);
-    return BarChart(
-      BarChartData(
-        maxY: maxV == 0 ? 1 : maxV * 1.25,
-        alignment: BarChartAlignment.spaceAround,
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 24,
-              getTitlesWidget: (v, meta) {
-                final i = v.toInt();
-                if (i < 0 || i >= presses.length) return const SizedBox.shrink();
-                return Text(Fmt.n0(presses[i]),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700));
-              },
+    return Column(children: [
+      for (var i = 0; i < 4; i++)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(children: [
+            SizedBox(
+              width: 92,
+              child: Row(children: [
+                Flexible(
+                  child: Text(kFingerNames[i],
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: i == least ? FontWeight.w700 : FontWeight.w500)),
+                ),
+                if (i < keymap.length) ...[
+                  const SizedBox(width: 4),
+                  Text(keymap[i].toUpperCase(), style: AppText.label.copyWith(fontSize: 10)),
+                ],
+              ]),
             ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (v, meta) {
-                final i = v.toInt();
-                if (i < 0 || i >= kFingerNames.length) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Column(children: [
-                    Text(kFingerNames[i], style: const TextStyle(fontSize: 11, color: AppColors.inkSoft)),
-                    if (i < keymap.length)
-                      Text(keymap[i].toUpperCase(),
-                          style: const TextStyle(fontSize: 10, color: AppColors.muted, fontFamily: 'SpaceMono')),
-                  ]),
-                );
-              },
-            ),
-          ),
-        ),
-        barGroups: [
-          for (var i = 0; i < 4; i++)
-            BarChartGroupData(x: i, barRods: [
-              BarChartRodData(
-                toY: presses[i].toDouble(),
-                width: 30,
-                color: i == least ? AppColors.dark : AppColors.accent,
-                borderRadius: BorderRadius.circular(8),
-                backDrawRodData: BackgroundBarChartRodData(
-                  show: true,
-                  toY: maxV == 0 ? 1 : maxV * 1.25,
-                  color: AppColors.surfaceMuted,
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  value: maxV == 0 ? 0 : presses[i] / maxV,
+                  minHeight: 12,
+                  backgroundColor: AppColors.surfaceMuted,
+                  valueColor: AlwaysStoppedAnimation(i == least ? AppColors.dark : AppColors.accent),
                 ),
               ),
-            ]),
-        ],
-      ),
-    );
+            ),
+            SizedBox(
+              width: 48,
+              child: Text(Fmt.n0(presses[i]),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 14, fontWeight: FontWeight.w700)),
+            ),
+          ]),
+        ),
+      if (least != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Row(children: [
+            Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.dark, borderRadius: BorderRadius.circular(3))),
+            const SizedBox(width: 6),
+            Text('Paling jarang dipakai: ${kFingerNames[least]}', style: AppText.small),
+          ]),
+        ),
+    ]);
   }
 }

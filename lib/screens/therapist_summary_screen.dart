@@ -94,7 +94,7 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
                 AppCard(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(children: [
-                    _row(['Minggu', 'Sesi', '≥5 mnt', 'Kepatuhan'], header: true),
+                    _row(['Minggu', 'Sesi', '≥ 5 mnt', 'Kepatuhan'], header: true),
                     for (final w in s.weeks)
                       _row([
                         Fmt.weekRange(w.weekStart),
@@ -198,7 +198,11 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
       child: Row(children: [
         Expanded(flex: 3, child: Text(cells[0], style: style)),
         for (var i = 1; i < cells.length; i++)
-          Expanded(flex: 2, child: Text(cells[i], style: style, textAlign: TextAlign.right)),
+          Expanded(
+            flex: i == cells.length - 1 ? 3 : 2,
+            child: Text(cells[i], style: style, textAlign: TextAlign.right, maxLines: 1, softWrap: false,
+                overflow: TextOverflow.visible),
+          ),
       ]),
     );
   }
