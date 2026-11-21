@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:provider/provider.dart';
 
@@ -46,15 +46,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return SafeArea(
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+        padding: const EdgeInsets.fromLTRB(18, 10, 18, 110),
         children: [
-          const MicroLabel('Perangkat'),
-          const SizedBox(height: 8),
-          const Text('Wanur Glove',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -1.2)),
-          const SizedBox(height: 16),
-          if (sources.useSim)
-            const SimBanner('MODE SIMULASI · bacaan di bawah berasal dari data simulasi'),
+          const PageHeader(eyebrow: 'Perangkat', title: 'Wanur', highlight: 'Glove'),
+          if (sources.useSim) const SimBanner('Mode simulasi · bacaan dari data simulasi'),
           HeroCard(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
@@ -62,7 +57,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: connected ? AppColors.success : AppColors.accent,
+                    color: connected ? AppColors.lime : AppColors.warning,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -76,51 +71,50 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         ? glove.connectedDevice!.platformName
                         : 'MediGrip-Controller')
                     : 'Glove tidak terhubung',
-                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               Text(
                 connected
                     ? (glove.connectedDevice?.remoteId.toString() ?? '')
                     : 'Pastikan glove menyala dan sudah di-pair di Pengaturan Bluetooth.',
-                style: const TextStyle(color: Colors.white60, fontSize: 13),
+                style: const TextStyle(color: Colors.white70, fontSize: 12.5),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               Row(children: [
                 Expanded(
                   child: PillButton(
                     label: _connecting ? 'Menghubungkan…' : (connected ? 'Hubungkan ulang' : 'Hubungkan'),
                     icon: Icons.bluetooth_rounded,
+                    light: true,
                     onPressed: _connecting ? null : _autoConnect,
                   ),
                 ),
                 const SizedBox(width: 10),
                 RoundIconButton(Icons.bluetooth_searching_rounded,
                     tooltip: 'Pindai perangkat',
-                    bg: Colors.white12,
+                    size: 46,
+                    bg: Colors.white.withValues(alpha: 0.18),
                     fg: Colors.white,
                     onTap: () => showScanDialog(context)),
               ]),
             ]),
           ),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(
-              child: StreamBuilder<ForceSample>(
+          const SectionHeader('Bacaan langsung'),
+          TileRow(children: [
+            StreamBuilder<ForceSample>(
                 stream: sources.current.forceSamples,
                 builder: (context, snap) {
                   final kg = snap.data?.kg ?? (sources.useSim ? null : glove.data.hxValue / 1000.0);
-                  return StatTile(label: 'Gaya sekarang', value: Fmt.n1(kg), unit: 'kg*', sub: 'loadcell');
+                  return StatTile(
+                      label: 'Gaya', icon: Icons.speed_rounded, value: Fmt.n1(kg), unit: 'kg*', sub: 'loadcell');
                 },
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: StatTile(
-                label: 'Tombol terakhir',
-                value: glove.data.lastKey == 'N/A' ? '–' : glove.data.lastKey.toUpperCase(),
-                sub: _fingerFor(glove.data.lastKey, keymap) ?? 'keypad',
-              ),
+            StatTile(
+              label: 'Tombol',
+              icon: Icons.keyboard_outlined,
+              value: glove.data.lastKey == 'N/A' ? '–' : glove.data.lastKey.toUpperCase(),
+              sub: _fingerFor(glove.data.lastKey, keymap) ?? 'terakhir ditekan',
             ),
           ]),
           const ForceFootnote(),
@@ -132,29 +126,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   Expanded(
                     child: Column(children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 42,
+                        height: 42,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: glove.data.lastKey == keymap[i] ? AppColors.accent : AppColors.bg,
-                          borderRadius: BorderRadius.circular(14),
+                          color: glove.data.lastKey == keymap[i] ? AppColors.accent : AppColors.surfaceMuted,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(keymap[i].toUpperCase(),
-                            style: TextStyle(
-                                fontSize: 20,
+                            style: TextStyle(fontFamily: 'SpaceGrotesk',
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: glove.data.lastKey == keymap[i] ? Colors.white : AppColors.ink)),
                       ),
                       const SizedBox(height: 6),
-                      Text(kFingerNames[i], style: const TextStyle(fontSize: 12, color: AppColors.inkSoft)),
+                      Text(kFingerNames[i], style: const TextStyle(fontSize: 11.5, color: AppColors.inkSoft)),
                     ]),
                   ),
               ]),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               const Text(
-                'Keypad terhubung ke HP sebagai keyboard Bluetooth. Aplikasi mencatat setiap tekanan '
-                'tanpa mengubah apa yang diterima game.',
-                style: TextStyle(fontSize: 12.5, color: AppColors.muted, height: 1.4),
+                'Keypad terhubung sebagai keyboard Bluetooth. Setiap tekanan dicatat tanpa mengubah '
+                'yang diterima game.',
+                style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
               ),
             ]),
           ),
@@ -209,7 +203,7 @@ void showScanDialog(BuildContext context) {
           Row(children: [
             const Expanded(
                 child: Text('Pindai perangkat',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+                    style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700))),
             Consumer<GloveProvider>(
               builder: (_, g, __) => TextButton(
                 onPressed: g.isScanning ? null : g.startScan,

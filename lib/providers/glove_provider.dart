@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,7 +46,7 @@ class GloveProvider with ChangeNotifier {
 
   // --- STATE KONFIGURASI TOMBOL (MAPPING) ---
   // Keymap awal (sesuai ESP32: f, g, h, j)
-  Map<String, String> _keyMap = {
+  final Map<String, String> _keyMap = {
     'index1': 'f',
     'index2': 'g',
     'index3': 'h',
@@ -368,7 +368,7 @@ class GloveProvider with ChangeNotifier {
       print(
           "🔄 Connecting to ${device.platformName.isNotEmpty ? device.platformName : device.remoteId}...");
 
-      await device.connect(timeout: const Duration(seconds: 10));
+      await device.connect(license: License.free, timeout: const Duration(seconds: 10));
       _connectedDevice = device;
       _isConnected = true;
       _connCtrl.add(true);

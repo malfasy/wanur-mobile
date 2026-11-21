@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../data/data_source_controller.dart';
@@ -63,75 +63,81 @@ class _HomeScreenState extends State<HomeScreen> {
       2 => ProgressScreen(openStopwatch: _progressStopwatch),
       _ => const DeviceScreen(),
     };
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       body: body,
-      bottomNavigationBar: _PillNavBar(index: _tab, onTap: select),
+      bottomNavigationBar: _GlassNavBar(index: _tab, onTap: select),
     );
   }
 }
 
-class _PillNavBar extends StatelessWidget {
+class _GlassNavBar extends StatelessWidget {
   final int index;
   final ValueChanged<int> onTap;
-  const _PillNavBar({required this.index, required this.onTap});
+  const _GlassNavBar({required this.index, required this.onTap});
 
   static const _items = [
-    (Icons.home_rounded, 'Beranda'),
-    (Icons.event_note_rounded, 'Riwayat'),
-    (Icons.insights_rounded, 'Progres'),
-    (Icons.back_hand_rounded, 'Glove'),
+    (Icons.home_outlined, Icons.home_rounded, 'Beranda'),
+    (Icons.event_note_outlined, Icons.event_note_rounded, 'Riwayat'),
+    (Icons.insights_outlined, Icons.insights_rounded, 'Progres'),
+    (Icons.back_hand_outlined, Icons.back_hand_rounded, 'Glove'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Container(
-        height: 66,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(color: AppColors.dark.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 8)),
-          ],
-        ),
-        child: Row(
-          children: [
-            for (var i = 0; i < _items.length; i++)
-              Expanded(
-                flex: i == index ? 2 : 1,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
-                    decoration: BoxDecoration(
-                      color: i == index ? AppColors.ink : Colors.transparent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(_items[i].$1, size: 22, color: i == index ? Colors.white : AppColors.muted),
-                        if (i == index) ...[
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(_items[i].$2,
-                                overflow: TextOverflow.fade,
-                                softWrap: false,
-                                style: const TextStyle(
-                                    color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                          ),
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: GlassPanel(
+        radius: 26,
+        padding: const EdgeInsets.all(6),
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            children: [
+              for (var i = 0; i < _items.length; i++)
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onTap(i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: i == index ? AppColors.accentBright : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: i == index
+                            ? [
+                                BoxShadow(
+                                    color: AppColors.accent.withValues(alpha: 0.35),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4))
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(i == index ? _items[i].$2 : _items[i].$1,
+                              size: 21, color: i == index ? AppColors.dark : AppColors.muted),
+                          const SizedBox(height: 2),
+                          Text(_items[i].$3.toUpperCase(),
+                              maxLines: 1,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              style: AppText.label.copyWith(
+                                fontSize: 9,
+                                letterSpacing: 0.3,
+                                color: i == index ? AppColors.dark : AppColors.muted,
+                                fontWeight: i == index ? FontWeight.w700 : FontWeight.w600,
+                              )),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -185,12 +191,12 @@ class _BerandaTabState extends State<BerandaTab> {
     return _HomeData(ref, week, target, days, grips.isEmpty ? null : grips.last);
   }
 
-  String _greeting() {
+  (String, String) _greeting() {
     final h = DateTime.now().hour;
-    if (h < 11) return 'Selamat pagi.';
-    if (h < 15) return 'Selamat siang.';
-    if (h < 19) return 'Selamat sore.';
-    return 'Selamat malam.';
+    if (h < 11) return ('Selamat', 'pagi.');
+    if (h < 15) return ('Selamat', 'siang.');
+    if (h < 19) return ('Selamat', 'sore.');
+    return ('Selamat', 'malam.');
   }
 
   void _onTitleTap(DataSourceController s) {
@@ -210,6 +216,7 @@ class _BerandaTabState extends State<BerandaTab> {
     _syncWith(sources);
     final glove = context.watch<GloveProvider>();
     final connected = sources.useSim || glove.isConnected;
+    final (greet, greetAccent) = _greeting();
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
@@ -222,93 +229,83 @@ class _BerandaTabState extends State<BerandaTab> {
           future: _future,
           builder: (context, snap) {
             final d = snap.data;
+            final grip = d?.lastGrip;
+            final gripChange = grip?.changeFromFirstPct;
+            void go(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 110),
               children: [
-                Row(children: [
-                  Expanded(
-                    child: MicroLabel(
-                        '${Fmt.dayDate(d?.refNow ?? DateTime.now())}${sources.useSim ? ' · simulasi' : ''}'),
-                  ),
-                  if (sources.devUnlocked)
-                    RoundIconButton(Icons.tune_rounded,
-                        tooltip: 'Pengaturan Pengembang',
-                        onTap: () => Navigator.push(
-                            context, MaterialPageRoute(builder: (_) => const DevSettingsScreen()))),
-                  const SizedBox(width: 8),
-                  _ConnectionChip(connected: connected, sim: sources.useSim, onTap: () => widget.onSelectTab(3)),
-                ]),
-                const SizedBox(height: 14),
-                GestureDetector(
-                  onTap: () => _onTitleTap(sources),
-                  child: Text(_greeting(),
-                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: -1.2)),
+                PageHeader(
+                  eyebrow: '${Fmt.dayDate(d?.refNow ?? DateTime.now())}${sources.useSim ? ' · simulasi' : ''}',
+                  title: greet,
+                  highlight: greetAccent,
+                  onTitleTap: () => _onTitleTap(sources),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (sources.devUnlocked) ...[
+                      RoundIconButton(Icons.tune_rounded,
+                          size: 36,
+                          tooltip: 'Pengaturan Pengembang',
+                          onTap: () => go(const DevSettingsScreen())),
+                      const SizedBox(width: 6),
+                    ],
+                    _ConnectionChip(connected: connected, sim: sources.useSim, onTap: () => widget.onSelectTab(3)),
+                  ]),
                 ),
-                const Text('Siap latihan hari ini?',
-                    style: TextStyle(fontSize: 15, color: AppColors.inkSoft)),
-                const SizedBox(height: 20),
-                if (sources.useSim && d != null)
-                  SimBanner('MODE SIMULASI · data s.d. ${Fmt.date(d.refNow)}'),
+                if (sources.useSim && d != null) SimBanner('Mode simulasi · data s.d. ${Fmt.date(d.refNow)}'),
                 _WeekHero(data: d),
-                const SizedBox(height: 14),
-                Row(children: [
-                  Expanded(
-                    child: StatTile(
-                      label: 'Tes genggam',
-                      value: d?.lastGrip == null ? '–' : Fmt.n1(d!.lastGrip!.value),
-                      unit: d?.lastGrip == null ? null : 'kg*',
-                      sub: d?.lastGrip == null
-                          ? 'Belum ada tes'
-                          : '${Fmt.pct(d!.lastGrip!.changeFromFirstPct, signed: true)} dari awal · ${d.lastGrip!.handLabel.toLowerCase()}',
-                      subColor: (d?.lastGrip?.changeFromFirstPct ?? 0) > 0 ? AppColors.success : null,
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const GripTestScreen())),
-                    ),
+                const SectionHeader('Ringkasan'),
+                TileRow(children: [
+                  StatTile(
+                    label: 'Tes genggam',
+                    icon: Icons.back_hand_outlined,
+                    value: grip == null ? '–' : Fmt.n1(grip.value),
+                    unit: grip == null ? null : 'kg*',
+                    sub: grip == null
+                        ? 'Belum ada tes'
+                        : '${Fmt.pct(gripChange, signed: true)} dari awal · ${grip.handLabel.toLowerCase()}',
+                    subColor: (gripChange ?? 0) > 0 ? AppColors.success : null,
+                    onTap: () => go(const GripTestScreen()),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: StatTile(
-                      label: 'Menit aktif',
-                      value: Fmt.n0(d?.week?.activeMinTotal ?? 0),
-                      unit: 'mnt',
-                      sub: 'minggu ini',
-                      onTap: () => widget.onSelectTab(2),
-                    ),
+                  StatTile(
+                    label: 'Menit aktif',
+                    icon: Icons.timer_outlined,
+                    value: Fmt.n0(d?.week?.activeMinTotal ?? 0),
+                    unit: 'mnt',
+                    sub: 'minggu ini',
+                    onTap: () => widget.onSelectTab(2),
                   ),
                 ]),
                 const ForceFootnote(),
                 const SectionHeader('Menu'),
-                MenuRow(
-                  icon: Icons.event_note_rounded,
-                  title: 'Riwayat Latihan',
-                  subtitle: 'Semua sesi, dikelompokkan per minggu',
-                  onTap: () => widget.onSelectTab(1),
-                ),
+                TileRow(children: [
+                  QuickTile(
+                    icon: Icons.event_note_outlined,
+                    title: 'Riwayat Latihan',
+                    subtitle: 'Sesi per minggu',
+                    onTap: () => widget.onSelectTab(1),
+                  ),
+                  QuickTile(
+                    icon: Icons.insights_outlined,
+                    title: 'Progres',
+                    subtitle: 'Kepatuhan & tren',
+                    onTap: () => widget.onSelectTab(2),
+                  ),
+                ]),
                 const SizedBox(height: 10),
-                MenuRow(
-                  icon: Icons.insights_rounded,
-                  title: 'Progres Pemulihan',
-                  subtitle: 'Kepatuhan, tren genggam, sebaran jari',
-                  iconBg: AppColors.accentSoft,
-                  iconFg: AppColors.accentDeep,
-                  onTap: () => widget.onSelectTab(2),
-                ),
-                const SizedBox(height: 10),
-                MenuRow(
-                  icon: Icons.back_hand_outlined,
-                  title: 'Tes Genggam',
-                  subtitle: '3 percobaan terpandu',
-                  onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => const GripTestScreen())),
-                ),
-                const SizedBox(height: 10),
-                MenuRow(
-                  icon: Icons.touch_app_outlined,
-                  title: 'Kalibrasi Jari',
-                  subtitle: 'Cek respons tombol tiap jari',
-                  onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => const TouchMenuScreen())),
-                ),
+                TileRow(children: [
+                  QuickTile(
+                    icon: Icons.back_hand_outlined,
+                    title: 'Tes Genggam',
+                    subtitle: '3 percobaan',
+                    onTap: () => go(const GripTestScreen()),
+                  ),
+                  QuickTile(
+                    icon: Icons.touch_app_outlined,
+                    title: 'Kalibrasi Jari',
+                    subtitle: 'Cek tombol',
+                    onTap: () => go(const TouchMenuScreen()),
+                  ),
+                ]),
               ],
             );
           },
@@ -326,24 +323,22 @@ class _ConnectionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = sim ? 'Simulasi' : (connected ? 'Terhubung' : 'Belum terhubung');
+    final label = sim ? 'Simulasi' : (connected ? 'Terhubung' : 'Offline');
+    final color = sim ? AppColors.success : (connected ? AppColors.success : AppColors.warning);
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(99)),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppColors.glass,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: Colors.white),
+        ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: sim ? AppColors.lime : (connected ? AppColors.success : AppColors.accent),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          Container(width: 7, height: 7, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 7),
+          Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
         ]),
       ),
     );
@@ -367,30 +362,31 @@ class _WeekHero extends StatelessWidget {
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              MicroLabel('Minggu ini · target $target sesi', color: Colors.white54),
-              const SizedBox(height: 10),
+              MicroLabel('Minggu ini · target $target sesi', color: Colors.white70),
+              const SizedBox(height: 8),
               Text(Fmt.weekRange(ws),
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -1)),
-              const SizedBox(height: 6),
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk',
+                      color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+              const SizedBox(height: 4),
               Text(
                 '${d?.week?.sessionsCount ?? 0} sesi · ${Fmt.n0(d?.week?.activeMinTotal ?? 0)} menit aktif',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                style: const TextStyle(color: Colors.white70, fontSize: 12.5),
               ),
             ]),
           ),
           RingProgress(
             value: target == 0 ? 0 : q / target,
-            size: 96,
+            size: 74,
+            stroke: 7,
             center: Column(mainAxisSize: MainAxisSize.min, children: [
               Text('$q/$target',
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -1)),
-              const Text('sesi', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                  style: const TextStyle(fontFamily: 'SpaceGrotesk',
+                      color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+              Text('SESI', style: AppText.label.copyWith(color: Colors.white70, fontSize: 8.5)),
             ]),
           ),
         ]),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
         Row(children: [
           for (var i = 1; i <= 7; i++)
             Expanded(
@@ -398,26 +394,28 @@ class _WeekHero extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Column(children: [
                   Container(
-                    height: 6,
+                    height: 5,
                     decoration: BoxDecoration(
                       color: (d?.trainedWeekdays.contains(i) ?? false)
-                          ? AppColors.accent
-                          : Colors.white.withValues(alpha: i == today ? 0.35 : 0.12),
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: i == today ? 0.40 : 0.16),
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(dayLetters[i - 1],
-                      style: TextStyle(
-                          color: i == today ? Colors.white : Colors.white38,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600)),
+                      style: AppText.label.copyWith(
+                          color: i == today ? Colors.white : Colors.white54, fontSize: 9.5)),
                 ]),
               ),
             ),
         ]),
-        const SizedBox(height: 18),
-        PillButton(label: 'Mulai latihan', icon: Icons.play_arrow_rounded, onPressed: () => openTraining(context)),
+        const SizedBox(height: 14),
+        PillButton(
+            label: 'Mulai latihan',
+            icon: Icons.play_arrow_rounded,
+            light: true,
+            onPressed: () => openTraining(context)),
       ]),
     );
   }

@@ -187,7 +187,7 @@ class TrainingRepository {
         [source]);
     final minSession = bounds.first['a'] as int?;
     final maxSession = bounds.first['b'] as int?;
-    if (minSession == null) {
+        if (minSession == null || maxSession == null) {
       await ex.delete('weekly_summary', where: 'source = ?', whereArgs: [source]);
       return;
     }

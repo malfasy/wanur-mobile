@@ -27,13 +27,13 @@ Future<Uint8List> buildTherapistPdf(TherapistSummary s) async {
 
   pw.Widget h(String text) => pw.Padding(
         padding: const pw.EdgeInsets.only(top: 14, bottom: 6),
-        child: pw.Text(_t(text), style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: ink)),
+        child: pw.Text(_t(text), style: const pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: ink)),
       );
 
   pw.Widget table(List<String> headers, List<List<String>> rows) => pw.TableHelper.fromTextArray(
         headers: headers.map(_t).toList(),
         data: rows.map((r) => r.map(_t).toList()).toList(),
-        headerStyle: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: ink),
+        headerStyle: const pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: ink),
         cellStyle: const pw.TextStyle(fontSize: 9),
         headerDecoration: const pw.BoxDecoration(color: soft),
         border: const pw.TableBorder(
@@ -62,7 +62,7 @@ Future<Uint8List> buildTherapistPdf(TherapistSummary s) async {
         pw.Text('RINGKASAN LATIHAN · WANUR GLOVE${s.scope == 'sim' ? ' · DATA SIMULASI' : ''}',
             style: const pw.TextStyle(fontSize: 9, color: muted, letterSpacing: 1)),
         pw.SizedBox(height: 4),
-        pw.Text(_t(period), style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: ink)),
+        pw.Text(_t(period), style: const pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: ink)),
         pw.SizedBox(height: 4),
         pw.Text(_t('Dibuat ${Fmt.date(DateTime.now())} ${Fmt.time(DateTime.now())}'),
             style: const pw.TextStyle(fontSize: 9, color: muted)),
@@ -71,7 +71,7 @@ Future<Uint8List> buildTherapistPdf(TherapistSummary s) async {
           padding: const pw.EdgeInsets.all(10),
           decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFFBE5DC)),
           child: pw.Text(_t('$kNotClinicalDisclaimer.'),
-              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: accent)),
+              style: const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: accent)),
         ),
         h('Kepatuhan'),
         pw.Text(

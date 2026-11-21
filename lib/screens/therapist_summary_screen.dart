@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:printing/printing.dart';
 
 import '../logic/indicators.dart';
@@ -43,7 +43,7 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Ringkasan untuk terapis'),
         leadingWidth: 64,
@@ -61,7 +61,7 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
           final s = snap.data!;
           return Stack(children: [
             ListView(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 110),
+              padding: const EdgeInsets.fromLTRB(18, 4, 18, 100),
               children: [
                 Segmented<int>(
                   items: const [(4, '4 minggu'), (8, '8 minggu'), (12, '12 minggu')],
@@ -72,27 +72,22 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
                 MicroLabel('Periode${s.scope == 'sim' ? ' · data simulasi' : ''}'),
                 const SizedBox(height: 6),
                 Text('${Fmt.date(s.from)} – ${Fmt.date(s.to.subtract(const Duration(days: 1)))}',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.8)),
+                    style: AppText.title.copyWith(fontSize: 20)),
                 const SizedBox(height: 14),
                 const Callout(title: kNotClinicalDisclaimer),
                 const SizedBox(height: 14),
-                Row(children: [
-                  Expanded(
-                    child: StatTile(
+                TileRow(children: [
+                  StatTile(
                       label: 'Kepatuhan',
                       value: Fmt.pct(s.periodCompliancePct == null ? null : displayCompliance(s.periodCompliancePct!)),
                       sub: '${s.qualifyingTotal} dari ${s.targetTotal} sesi target',
                       dark: true,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: StatTile(
-                      label: 'Latihan',
-                      value: Fmt.n0(s.activeMinTotal),
-                      unit: 'mnt',
-                      sub: '${s.sessionsTotal} sesi',
-                    ),
+                  StatTile(
+                    label: 'Latihan',
+                    value: Fmt.n0(s.activeMinTotal),
+                    unit: 'mnt',
+                    sub: '${s.sessionsTotal} sesi',
                   ),
                 ]),
                 const SectionHeader('Kepatuhan per minggu'),
@@ -141,7 +136,7 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
                           label: kFingerNames[i],
                           pct: pct?[i] ?? 0,
                           trailing: Fmt.pct(pct?[i]),
-                          color: i == least ? AppColors.accent : AppColors.dark2,
+                          color: i == least ? AppColors.dark : AppColors.accent,
                         ),
                     ]);
                   }),
@@ -150,8 +145,8 @@ class _TherapistSummaryScreenState extends State<TherapistSummaryScreen> {
                 Callout(
                   title: 'Terputus ${s.disconnectsTotal} kali di ${s.sessionsWithDisconnect} sesi',
                   body: '${s.emptySessions} sesi tanpa tekanan · ${s.shortSessions} sesi di bawah 5 menit aktif',
-                  bg: s.disconnectsTotal == 0 ? AppColors.successSoft : AppColors.accentSoft,
-                  dot: s.disconnectsTotal == 0 ? AppColors.success : AppColors.accent,
+                  bg: s.disconnectsTotal == 0 ? AppColors.successSoft : AppColors.warningSoft,
+                  dot: s.disconnectsTotal == 0 ? AppColors.success : AppColors.warning,
                 ),
                 SectionHeader('Sesi (${s.sessionsTotal})'),
                 AppCard(

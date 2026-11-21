@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../data/data_source_controller.dart';
@@ -118,7 +118,7 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<DataSourceController>();
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Pengaturan Pengembang'),
         leadingWidth: 64,
@@ -177,14 +177,14 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
               child: _recentKeys.isEmpty
                   ? const Text(
                       'Belum ada event. Coba: adb shell input keyevent KEYCODE_F',
-                      style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontFamily: 'SpaceMono', fontSize: 12, color: AppColors.muted),
                     )
                   : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       for (final k in _recentKeys)
                         Text(
                           '${Fmt.time(DateTime.fromMillisecondsSinceEpoch(k.tMs))}  '
                           '${k.char.isEmpty ? '(kode ${k.keyCode})' : k.char}  ${k.action}',
-                          style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                          style: const TextStyle(fontFamily: 'SpaceMono', fontSize: 13),
                         ),
                     ]),
             ),
@@ -235,7 +235,7 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
             const SizedBox(height: 6),
             const Text(
               'Ambil dengan: adb pull /sdcard/Android/data/com.example.flutter_application_1/files/wanur_export/',
-              style: TextStyle(fontSize: 12, color: AppColors.muted, fontFamily: 'monospace'),
+              style: TextStyle(fontSize: 12, color: AppColors.muted, fontFamily: 'SpaceMono'),
             ),
             const SectionHeader('Data'),
             PillButton(

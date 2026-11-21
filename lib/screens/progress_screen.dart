@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../data/data_source_controller.dart';
@@ -123,43 +123,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
               await _future;
             },
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 110),
               children: [
-                MicroLabel('Progres pemulihan${d.lastGrip == null ? '' : ' · tangan ${d.lastGrip!.handLabel.toLowerCase()}'}'),
-                const SizedBox(height: 8),
-                Text(_headline(d),
-                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -1.2, height: 1.1)),
-                const SizedBox(height: 16),
-                if (sources.useSim) SimBanner('MODE SIMULASI · data s.d. ${Fmt.date(d.refNow)}'),
-                Row(children: [
-                  Expanded(child: _complianceTile(d)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _gripTile(d)),
-                ]),
-                const SizedBox(height: 16),
-                Row(children: [
-                  const Expanded(child: MicroLabel('Periode grafik')),
-                  Segmented<int>(
-                    items: const [(4, '4 mgg'), (8, '8 mgg'), (12, '12 mgg'), (0, 'Semua')],
-                    value: _periodWeeks,
-                    onChanged: (v) => setState(() => _periodWeeks = v),
-                  ),
-                ]),
-                const SizedBox(height: 12),
+                const PageHeader(eyebrow: 'Progres pemulihan', title: 'Pemulihan,', highlight: 'dalam angka'),
+                if (sources.useSim) SimBanner('Mode simulasi · data s.d. ${Fmt.date(d.refNow)}'),
+                TileRow(children: [_complianceTile(d), _gripTile(d)]),
+                const SectionHeader('Periode grafik'),
+                Segmented<int>(
+                  items: const [(4, '4 mgg'), (8, '8 mgg'), (12, '12 mgg'), (0, 'Semua')],
+                  value: _periodWeeks,
+                  onChanged: (v) => setState(() => _periodWeeks = v),
+                ),
+                const SizedBox(height: 10),
                 _GripTrendCard(grips: periodGrips),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 _ActiveMinutesCard(weeks: periodWeeks, currentWeekMs: weekStartMs(d.refNow.millisecondsSinceEpoch)),
-                const SizedBox(height: 12),
+                const SectionHeader('Lainnya'),
                 MenuRow(
                   icon: Icons.pan_tool_outlined,
                   title: 'Sebaran jari',
                   subtitle: 'Persentase tekanan tiap jari',
-                  iconBg: AppColors.accentSoft,
-                  iconFg: AppColors.accentDeep,
                   onTap: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => FingerDistributionScreen(scope: d.scope))),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 _TargetCard(
                   current: d.currentTarget,
                   onSave: (v) async {
@@ -167,7 +154,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     sources.markDataChanged();
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 PillButton(
                   label: 'Ringkasan untuk terapis',
                   icon: Icons.description_outlined,
@@ -186,12 +173,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   String _headline(ProgressData d) {
     final g = d.lastGrip;
-    if (g == null) return 'Belum ada tes genggam.';
+    if (g == null) return '';
     final c = g.changeFromFirstPct;
-    if (c == null) return 'Tes genggam tercatat.';
-    if (c >= 5) return 'Genggam naik ${Fmt.pct(c)}.';
-    if (c <= -5) return 'Genggam turun ${Fmt.pct(-c)}.';
-    return 'Genggam stabil.';
+    if (c == null) return '';
+    if (c >= 5) return 'Naik ·';
+    if (c <= -5) return 'Turun ·';
+    return 'Stabil ·';
   }
 
   Widget _complianceTile(ProgressData d) {
@@ -199,6 +186,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final pct = w?.compliancePct;
     return StatTile(
       label: 'Kepatuhan',
+      icon: Icons.verified_outlined,
       value: pct == null ? '0%' : Fmt.pct(displayCompliance(pct)),
       sub: '(${w?.qualifyingCount ?? 0}/${w?.target ?? d.currentTarget}) minggu ini',
       dark: true,
@@ -210,8 +198,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final c = g?.changeFromFirstPct;
     return StatTile(
       label: 'Tes genggam',
+      icon: Icons.back_hand_outlined,
       value: c == null ? '–' : Fmt.pct(c, signed: true),
-      sub: g == null ? 'belum ada tes' : 'dari awal · ${Fmt.kg(g.value)}',
+      sub: g == null ? 'belum ada tes' : '${_headline(d)} ${Fmt.kg(g.value)} · ${g.handLabel.toLowerCase()}',
       subColor: (c ?? 0) > 0 ? AppColors.success : null,
     );
   }
@@ -238,23 +227,18 @@ class _GripTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final right = grips.where((g) => g.hand == 'right').toList();
     final left = grips.where((g) => g.hand == 'left').toList();
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Tes genggam (kg*)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        const Wrap(spacing: 14, children: [
-          _Legend(AppColors.accent, 'Kanan'),
-          _Legend(AppColors.dark2, 'Kiri'),
-        ]),
-        const SizedBox(height: 16),
-        if (grips.isEmpty)
-          const SizedBox(
-            height: 120,
-            child: Center(child: Text('Belum ada tes di periode ini', style: TextStyle(color: AppColors.muted))),
-          )
-        else
-          SizedBox(height: 200, child: GripLineChart(right: right, left: left)),
+    return ChartCard(
+      title: 'Tes genggam (kg*)',
+      trailing: const Wrap(spacing: 10, children: [
+        _Legend(AppColors.accent, 'Kanan'),
+        _Legend(AppColors.dark, 'Kiri'),
       ]),
+      child: grips.isEmpty
+          ? const SizedBox(
+              height: 90,
+              child: Center(child: Text('Belum ada tes di periode ini', style: AppText.small)),
+            )
+          : SizedBox(height: 170, child: GripLineChart(right: right, left: left)),
     );
   }
 }
@@ -299,12 +283,12 @@ class GripLineChart extends StatelessWidget {
         maxX: spanX,
         minY: minY,
         maxY: maxY,
-        lineTouchData: LineTouchData(enabled: false),
+        lineTouchData: const LineTouchData(enabled: false),
         borderData: FlBorderData(show: false),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          getDrawingHorizontalLine: (v) => FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
+          getDrawingHorizontalLine: (v) => const FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
         ),
         titlesData: FlTitlesData(
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -333,7 +317,7 @@ class GripLineChart extends StatelessWidget {
           ),
         ),
         lineBarsData: [
-          if (left.isNotEmpty) line(left, AppColors.dark2),
+          if (left.isNotEmpty) line(left, AppColors.dark),
           if (right.isNotEmpty) line(right, AppColors.accent),
         ],
       ),
@@ -350,22 +334,15 @@ class _ActiveMinutesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxV = weeks.fold<double>(0, (a, w) => w.activeMinTotal > a ? w.activeMinTotal : a);
     final total = weeks.fold<double>(0, (a, w) => a + w.activeMinTotal);
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Expanded(
-              child: Text('Menit latihan aktif per minggu',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-          Text('${Fmt.n0(total)} mnt', style: const TextStyle(fontSize: 12, color: AppColors.muted)),
-        ]),
-        const SizedBox(height: 18),
-        if (weeks.isEmpty)
-          const SizedBox(
-              height: 120,
-              child: Center(child: Text('Belum ada sesi', style: TextStyle(color: AppColors.muted))))
-        else
-          SizedBox(
-            height: 180,
+    return ChartCard(
+      title: 'Menit aktif per minggu',
+      trailing: Text('${Fmt.n0(total)} mnt', style: AppText.label.copyWith(color: AppColors.accentDeep)),
+      child: total <= 0
+          ? const SizedBox(
+              height: 90,
+              child: Center(child: Text('Belum ada menit aktif di periode ini', style: AppText.small)))
+          : SizedBox(
+            height: 160,
             child: BarChart(
               BarChartData(
                 maxY: maxV <= 0 ? 10 : maxV * 1.2,
@@ -376,7 +353,7 @@ class _ActiveMinutesCard extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (v) =>
-                      FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
+                      const FlLine(color: AppColors.line, strokeWidth: 1, dashArray: [4, 4]),
                 ),
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -414,7 +391,9 @@ class _ActiveMinutesCard extends StatelessWidget {
                       BarChartRodData(
                         toY: weeks[i].activeMinTotal,
                         width: weeks.length > 16 ? 6 : (weeks.length > 8 ? 12 : 22),
-                        color: weeks[i].weekStartMs == currentWeekMs ? AppColors.accent : AppColors.dark2,
+                        color: weeks[i].weekStartMs == currentWeekMs
+                            ? AppColors.accentDeep
+                            : AppColors.accentBright,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ]),
@@ -422,7 +401,6 @@ class _ActiveMinutesCard extends StatelessWidget {
               ),
             ),
           ),
-      ]),
     );
   }
 }
@@ -451,25 +429,28 @@ class _TargetCardState extends State<_TargetCard> {
     final changed = _v != widget.current;
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Target mingguan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 4),
-        const Text('Jumlah sesi (≥ 5 menit aktif) per minggu. Berlaku mulai minggu ini.',
-            style: TextStyle(fontSize: 12.5, color: AppColors.muted)),
-        const SizedBox(height: 14),
         Row(children: [
-          RoundIconButton(Icons.remove_rounded,
-              bg: AppColors.bg, onTap: _v > 1 ? () => setState(() => _v--) : null),
-          Expanded(
-            child: Column(children: [
-              Text('$_v', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: -1)),
-              const Text('sesi/minggu', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+          const IconBadge(Icons.flag_outlined),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Target mingguan', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
+              Text('Sesi ≥ 5 menit aktif · mulai minggu ini', style: AppText.small),
             ]),
           ),
+          RoundIconButton(Icons.remove_rounded,
+              size: 34, bg: AppColors.surfaceMuted, onTap: _v > 1 ? () => setState(() => _v--) : null),
+          SizedBox(
+            width: 34,
+            child: Text('$_v',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700)),
+          ),
           RoundIconButton(Icons.add_rounded,
-              bg: AppColors.bg, onTap: _v < 14 ? () => setState(() => _v++) : null),
+              size: 34, bg: AppColors.surfaceMuted, onTap: _v < 14 ? () => setState(() => _v++) : null),
         ]),
         if (changed) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           PillButton(
             label: _saving ? 'Menyimpan…' : 'Simpan target',
             onPressed: _saving

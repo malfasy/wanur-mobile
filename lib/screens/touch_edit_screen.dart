@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../widgets/calibration_base_layout.dart';
 import '../providers/glove_provider.dart';
@@ -50,26 +50,26 @@ class TouchEditScreen extends StatelessWidget {
           ),
 
           // AREA BAWAH: 4 TOMBOL JARI (Untuk memicu Dialog Edit)
-          Positioned(
+          const Positioned(
             bottom: 40, left: 0, right: 0,
             child: Column(
               children: [
                 Row(
                   children: [
                     Expanded(child: _FingerEditBtn(fingerKey: 'pinky', label: 'KELINGKING')),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(child: _FingerEditBtn(fingerKey: 'ring', label: 'MANIS')),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(child: _FingerEditBtn(fingerKey: 'middle', label: 'TENGAH')),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(child: _FingerEditBtn(fingerKey: 'index', label: 'TELUNJUK')),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
             ),
           )

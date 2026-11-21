@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -120,8 +120,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
+    return AppScaffold(
       appBar: AppBar(
         leadingWidth: 64,
         leading: Padding(
@@ -161,7 +160,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
       ]),
       floatingActionButton: _sources.useSim && _simProgress == null
           ? FloatingActionButton.extended(
-              backgroundColor: AppColors.ink,
+              backgroundColor: AppColors.dark,
               foregroundColor: Colors.white,
               onPressed: _playSim,
               icon: const Icon(Icons.play_circle_outline_rounded),
@@ -239,7 +238,7 @@ class _SimPlaySheetState extends State<_SimPlaySheet> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Putar sesi simulasi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const Text('Putar sesi simulasi', style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Text('Profil ${widget.profileId} · ${kSimProfileNames[widget.profileId] ?? ''}',
               style: const TextStyle(color: AppColors.muted)),

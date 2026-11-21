@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
@@ -56,7 +56,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 const Text('“', style: TextStyle(fontSize: 80, height: 0.8, color: AppColors.accent)),
                 const Text(
                   'Kesehatan adalah harmoni sempurna antara tubuh dan jiwa.',
-                  style: TextStyle(
+                  style: TextStyle(fontFamily: 'SpaceGrotesk',
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,

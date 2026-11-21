@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
 import 'quote_screen.dart';
@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 22),
             const Text('wanur',
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1.5)),
+                style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1.5)),
             const SizedBox(height: 4),
             const Text('REHABMEDICS',
                 style: TextStyle(letterSpacing: 3, color: AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),

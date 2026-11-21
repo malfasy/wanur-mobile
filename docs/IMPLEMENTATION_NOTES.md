@@ -11,6 +11,8 @@ Branch: `feature/logbook-dashboard`. Hardware glove, firmware ESP32, dan game we
 | `printing` | `^5.14.2` | membuka menu share Android untuk PDF (`Printing.sharePdf`) |
 | `path_provider` | `^2.1.5` | folder ekspor indikator yang bisa diambil dengan `adb pull` |
 
+Font yang dibundel di `assets/fonts/` (SIL Open Font License, teks lisensi ikut disertakan): Plus Jakarta Sans (teks utama), Space Grotesk (judul dan angka), Space Mono (label kecil). Instance statis 400/500/600/700 dibuat dari font variabel Google Fonts dengan fontTools.
+
 Paket lama yang dipakai lebih banyak: `sqflite` (skema v2), `intl` (format tanggal dan angka bahasa Indonesia), `shared_preferences` (sumber data dan opsi pengembang), `webview_flutter` (`loadFlutterAsset` untuk halaman uji FR6).
 
 Untuk Methods, tulis **versi yang benar-benar terpasang** dari `pubspec.lock` setelah `flutter pub get`:
@@ -72,10 +74,15 @@ Alat bantu Python (Python 3.9+ standar, tanpa paket tambahan): `tools/generate_p
 ### Layar dan UI
 
 19. `measurement_screen.dart` diganti `grip_test_screen.dart` (kartu Tes Genggam diarahkan ke layar baru), jadi nilai "Left Hand" `38.0` dan durasi `"5.0s"` hilang. `loading_screen.dart` (progress bar palsu 2,5 s) dihapus; intro sekarang Splash 1,4 s → kutipan 3 s (ketuk untuk lewati) → Beranda.
-20. Redesign UI mengikuti gambar inspirasi: latar krem hangat, kartu putih, kartu ringkasan gelap, aksen oranye-merah, angka besar, label kecil huruf kapital, navigasi bawah berbentuk pil (Beranda, Riwayat, Progres, Glove). Layar kalibrasi memakai latar gelap yang sama dengan ilustrasi tangan lama (posisi badge huruf tidak berubah). Teks layar lama ikut diterjemahkan ke bahasa Indonesia.
+20. Redesign UI mengikuti inspirasi aplikasi rehabilitasi bernuansa biru: latar biru muda bergradasi, kartu putih semi-transparan, kartu sorotan biru tua ke cyan, aksen cyan, label kecil monospace huruf kapital, judul dua warna, dan navigasi bawah kaca (blur latar, hanya di navigasi supaya scroll tetap ringan). Layar kalibrasi memakai latar biru tua dengan ilustrasi tangan lama (posisi badge huruf tidak berubah). Teks layar lama ikut diterjemahkan ke bahasa Indonesia.
 21. Perbaikan kecil di kalibrasi jari: satu tekanan bisa memajukan lebih dari satu jari karena `build` terpanggil berkali-kali dalam 300 ms (notifikasi gaya 2 Hz). Ditambah guard dan `resetLastKey()` setelah tiap langkah dan saat layar dibuka.
 22. PDF memakai font standar (Helvetica, Latin-1), jadi beberapa karakter diganti di PDF saja (`≥` → `>=`, tanda pisah → `-`). `share_plus` tidak ditambahkan karena `printing` sudah menyediakan share sheet.
 23. Pengaturan Pengembang terlihat otomatis di build debug; di build profile/release dibuka dengan mengetuk sapaan Beranda 7 kali, dan bisa disembunyikan lagi dari layar itu.
+
+### Build Android
+
+25. Flutter versi terbaru di laptop pengujian mewajibkan Gradle ≥ 9.3.1, jadi konfigurasi Android disamakan dengan template `flutter create` dari SDK yang sama: Gradle 9.5.0, Android Gradle Plugin 9.3.1, Kotlin 2.4.20, Java 17 untuk kompilasi, `ndkVersion` dari Flutter (NDK 28.2.13676358), dan `compileSdk = 37` karena `permission_handler_android` membutuhkan SDK 37. Build dijalankan dengan JDK 21 (`flutter config --jdk-dir`), karena Gradle 8.12 lama tidak mendukung Java 25 bawaan Android Studio.
+26. `flutter_blue_plus` yang ter-resolve (1.36.x) mewajibkan parameter `license` pada `connect()`; dipakai `License.free`.
 
 ### Verifikasi saat pengembangan
 

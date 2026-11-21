@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/session_model.dart';
 import '../services/database_helper.dart';
@@ -19,7 +19,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('Arsip pengukuran lama'),
         leadingWidth: 64,
@@ -78,7 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 style: const TextStyle(fontSize: 12, color: AppColors.muted)),
             const SizedBox(height: 2),
             Text('${Fmt.n1(item.kg)} kg*',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+                style: const TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
           ]),
         ),
         Tag(item.status),

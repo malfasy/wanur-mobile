@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../widgets/calibration_base_layout.dart';
 import '../providers/glove_provider.dart';
@@ -161,7 +161,7 @@ class _TouchCalibrationScreenState extends State<TouchCalibrationScreen> {
           color: AppColors.dark,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white12, width: 1),
-          boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 10)]),
+          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)]),
       child: Text(
         text,
         textAlign: TextAlign.center,
